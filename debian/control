@@ -1,0 +1,13 @@
+Source: corevpn
+Section: contrib
+Priority: extra
+Maintainer: Maciej Nabozny <mn@mnabozny.pl>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://cloudover.org/coredav/
+
+Package: corevpn
+Architecture: all
+Depends: overcluster-core
+Description: VPN based networking for OverCluster-core
+
