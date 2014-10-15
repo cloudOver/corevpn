@@ -24,11 +24,12 @@ from django.db import models
 
 class VPN(StateMixin, UserMixin, CoreModel):
     states = [
-        'init',
-        'running',
-        'failed',
-        'removing',
-        'removed',
+        'init',         # VPN is beeing created
+        'running',      # VPN is running
+        'suspended',    # VPN is suspended (vpn agent is not running or was stopped)
+        'failed',       # VPN failed
+        'removing',     # VPN is beeing removed
+        'removed',      # VPN is not running and was cleaned up
     ]
     default_state = 'init'
 
