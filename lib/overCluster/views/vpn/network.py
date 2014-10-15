@@ -111,7 +111,14 @@ def detach(caller_id, network_id, vm_id):
     task.action = 'detach'
     task.addAfter(Task.objects.filter(type='vpn'))
 
+
 @api_log(log=True)
-def get_client_cert(caller_id, vpn_id):
+def get_list(caller_id):
+    user = User.get(caller_id)
+    return [v.to_dict for v in VPN.objects.filter(user=user).all()]
+
+
+@api_log(log=True)
+def client_cert(caller_id, vpn_id):
     vpn = VPN.get(caller_id, vpn_id)
     return {'cert': vpn.client_crt, 'key': vpn.client_key, 'ca_cert': vpn.ca_crt}
