@@ -55,17 +55,11 @@ def create(caller_id, address, mask):
 @api_log(log=True)
 def delete(caller_id, vpn_id):
     """ Delete vpn network """
-    an = VPN.get(caller_id, vpn_id)
-
-    if an.mode != 'isolated':
-        raise CMException('network_not_isolated')
-
-    if an.state != 'ok':
-        raise CMException('network_not_running')
+    vpn = VPN.get(caller_id, vpn_id)
 
     task = Task()
     task.state = 'not active'
-    task.set_prop('vpn_id', vpn_id)
+    task.set_prop('vpn_id', vpn.id)
     task.type = 'vpn'
     task.action = 'delete'
     task.addAfter(Task.objects.filter(type='vpn'))

@@ -28,12 +28,18 @@ import os
 class AgentThread(BaseAgent):
     task_type = 'vpn'
     supported_actions = ['create', 'delete', 'attach', 'detach']
+
     def init(self):
-        pass
+        for vpn in VPN.objects.filter(state='suspended').all():
+            self.mk_openvpn(vpn)
+            vpn.set_state('running')
+            vpn.save()
 
 
     def cleanup(self):
-        pass
+        for vpn in VPN.objects.filter(state='running').all():
+            vpn.set_state('suspended')
+            os.kill(vpn.openvpn_pid)
 
 
     def task_failed(self, task, exception):
@@ -53,12 +59,12 @@ class AgentThread(BaseAgent):
         if os.path.exists('/var/lib/cloudOver/coreVpn/certs/%d/rootCA.key' % vpn.id):
             raise Exception('vpn_exists')
 
-        if vpn.ca_crt != '' or vpn.ca_crt != None:
+        if vpn.ca_crt != '' and vpn.ca_crt != None:
             raise Exception('vpn_ca_exists')
 
         subprocess.call(['openssl',
                          'genrsa',
-                         '-out' '/var/lib/cloudOver/coreVpn/certs/%d/rootCA.key' % vpn.id,
+                         '-out', '/var/lib/cloudOver/coreVpn/certs/%d/rootCA.key' % vpn.id,
                          '2048'])
 
         subprocess.call(['openssl',
@@ -71,7 +77,7 @@ class AgentThread(BaseAgent):
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%d/rootCA.crt' % vpn.id,
                          '-subj', '/CN=CoreVpn-%d/O=CloudOver/OU=CoreVpn' % vpn.id])
 
-        vpn.ca_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/rootCA.crt' % vpn.id, 'r').readall()
+        vpn.ca_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/rootCA.crt' % vpn.id, 'r').read(1024*1024)
         vpn.save()
 
 
@@ -107,40 +113,15 @@ class AgentThread(BaseAgent):
     def mk_dh(self, vpn):
         subprocess.call(['openssl',
                          'dhparam',
-                         '-out',
-                         '/var/lib/cloudOver/coreVpn/certs/%d/dh1024.pem' % vpn.id,
+                         '-out', '/var/lib/cloudOver/coreVpn/certs/%d/dh1024.pem' % vpn.id,
                          '1024'])
 
-    def create(self, task):
-        vpn = VPN.objects.select_for_update().get(pk=int(task.get_prop('vpn_id')))
-        vpn.set_state('init')
-        vpn.save()
-
-        # Create CA
-        self.mk_ca(vpn.network)
-        self.mk_cert(vpn.network, 'server')
-        self.mk_cert(vpn.network, 'client')
-
-        vpn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/client.crt' % (vpn.id), 'r').readall()
-        vpn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/client.key' % (vpn.id), 'r').readall()
-
-        self.mk_dh(vpn)
-
-
-        port = 1194
-        used_ports = []
-        for v in VPN.objects.filter(state_in=['running', 'init']):
-            used_ports.append(v.port)
-        while port not in used_ports:
-            port = port + 1
-
-        vpn.port = port
-
+    def mk_openvpn(self, vpn):
         p = subprocess.Popen(['sudo',
                               'openvpn',
                               '--dev', 'corevpn%d' % vpn.id,
-                              '--dev-type', 'tap'
-                              '--persist-tun'
+                              '--dev-type', 'tap',
+                              '--persist-tun',
                               '--mode', 'server',
                               '--persist-key',
                               '--ping', '10',
@@ -153,8 +134,34 @@ class AgentThread(BaseAgent):
                               '--key', '/var/lib/cloudOver/coreVpn/certs/%d/server.key' % vpn.id,
                               '--client-to-client',
                               '--topology', 'p2p'])
-
         vpn.openvpn_pid = p.pid
+
+
+    def create(self, task):
+        vpn = VPN.objects.select_for_update().get(pk=int(task.get_prop('vpn_id')))
+        vpn.set_state('init')
+        vpn.save()
+
+        # Create CA
+        self.mk_ca(vpn)
+        self.mk_cert(vpn, 'server')
+        self.mk_cert(vpn, 'client')
+
+        vpn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/client.crt' % (vpn.id), 'r').read(1024*1024)
+        vpn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/client.key' % (vpn.id), 'r').read(1024*1024)
+
+        self.mk_dh(vpn)
+
+
+        port = 1194
+        used_ports = []
+        for v in VPN.objects.filter(state__in=['running', 'init']):
+            used_ports.append(v.port)
+        while port in used_ports and port < 10000:
+            port = port + 1
+
+        vpn.port = port
+        self.mk_openvpn(vpn)
 
         vpn.set_state('running')
         vpn.save()
@@ -162,7 +169,7 @@ class AgentThread(BaseAgent):
 
     def delete(self, task):
         vpn = VPN.objects.get(pk=int(task.get_prop('vpn_id')))
-        if VPN.connection_set.filter(vpn=vpn).count() > 0:
+        if len(VPN.connection_set.filter(vpn=vpn)) > 0:
             raise Exception('vpn_attached')
 
         vpn.set_state('removing')
@@ -187,8 +194,8 @@ class AgentThread(BaseAgent):
         conn.set_state('init')
         conn.vpn = vpn
         conn.vm = task.vm
-        conn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.key' % (vpn.id, key_name), 'r').readall()
-        conn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.crt' % (vpn.id, key_name), 'r').readall()
+        conn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.key' % (vpn.id, key_name), 'r').read(1024*1024)
+        conn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.crt' % (vpn.id, key_name), 'r').read(1024*1024)
         conn.save()
 
 
