@@ -22,6 +22,7 @@ from overCluster.agents.base_agent import BaseAgent
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
 import subprocess
+import signal
 import sys
 import os
 
@@ -39,7 +40,7 @@ class AgentThread(BaseAgent):
     def cleanup(self):
         for vpn in VPN.objects.filter(state='running').all():
             vpn.set_state('suspended')
-            os.kill(vpn.openvpn_pid)
+            os.kill(vpn.openvpn_pid, signal.SIGTERM)
 
 
     def task_failed(self, task, exception):
