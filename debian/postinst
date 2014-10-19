@@ -20,7 +20,8 @@ set -e
 
 case "$1" in
     configure)
-    echo "cloudover ALL=NOPASSWD: ALL" >> /etc/sudoers
+    chmod 600 $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
+    chown cloudover:cloudover $(DESTDIR)/var/lib/cloudOver/coreVpn/certs
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

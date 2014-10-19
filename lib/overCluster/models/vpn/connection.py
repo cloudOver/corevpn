@@ -35,4 +35,10 @@ class Connection(StateMixin, UserMixin, CoreModel):
     client_key = models.TextField()
     client_crt = models.TextField()
 
-    serializable = ['id', 'state', 'vpn', 'vm_id', 'client_key', 'client_crt']
+    def ca_crt(self):
+        return self.vpn.ca_crt
+
+    def port(self):
+        return self.vpn.port
+
+    serializable = ['id', 'state', 'vpn', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port']]
