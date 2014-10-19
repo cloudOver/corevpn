@@ -13,6 +13,3 @@ install:
 
 	mkdir -p $(DESTDIR)/etc/sudoers.d/
 	echo "cloudover ALL=NOPASSWD: /usr/sbin/openvpn" >> $(DESTDIR)/etc/sudoers.d/corevpn
-
-	chmod 600 $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
-	chown cloudover:cloudover $(DESTDIR)/var/lib/cloudOver/coreVpn/certs

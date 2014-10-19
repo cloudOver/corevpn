@@ -40,7 +40,11 @@ class AgentThread(BaseAgent):
     def cleanup(self):
         for vpn in VPN.objects.filter(state='running').all():
             vpn.set_state('suspended')
-            os.kill(vpn.openvpn_pid, signal.SIGTERM)
+            try:
+                os.kill(vpn.openvpn_pid, signal.SIGTERM)
+            except:
+                pass
+            vpn.save()
 
 
     def task_failed(self, task, exception):
@@ -120,6 +124,7 @@ class AgentThread(BaseAgent):
     def mk_openvpn(self, vpn):
         p = subprocess.Popen(['sudo',
                               'openvpn',
+                              '--user', 'cloudover',
                               '--dev', 'corevpn%d' % vpn.id,
                               '--dev-type', 'tap',
                               '--persist-tun',
@@ -170,12 +175,15 @@ class AgentThread(BaseAgent):
 
     def delete(self, task):
         vpn = VPN.objects.get(pk=int(task.get_prop('vpn_id')))
-        if len(VPN.connection_set.filter(vpn=vpn)) > 0:
+        if Connection.objects.filter(vpn=vpn).count() > 0:
             raise Exception('vpn_attached')
 
         vpn.set_state('removing')
         vpn.save()
-        os.kill(vpn.openvpn_pid, signal.SIGTERM)
+        try:
+            os.kill(vpn.openvpn_pid, signal.SIGTERM)
+        except:
+            pass
         subprocess.call('rm -rf /var/lib/cloudOver/coreVpn/certs/%d' % vpn.id, shell=True)
 
         vpn.set_state('removed')
