@@ -71,39 +71,40 @@ def attach(caller_id, vpn_id, vm_id):
     vpn = VPN.get(caller_id, vpn_id)
     vm = VM.get(caller_id, vm_id)
 
-    if vpn.mode != 'isolated':
-        raise CMException('network_not_isolated')
-
-    if vpn.state != 'ok':
+    if not vpn.in_state('running'):
         raise CMException('network_not_running')
+
+    if not vm.in_state('stopped'):
+        raise CMException('vm_not_stopped')
+
+    connection = Connection()
+    connection.vm = vm
+    connection.vpn = vpn
+    connection.user = User.get(caller_id)
+    connection.save()
 
     task = Task()
     task.vm = vm
     task.state = 'not active'
-    task.set_prop('vpn_id', vpn_id)
+    task.set_prop('connection_id', connection.id)
     task.type = 'vpn'
     task.action = 'attach'
-    task.addAfter(Task.objects.filter(type='vpn'))
+    task.addAfter(Task.objects.filter(type__in=['vpn']))
+
+    return connection.to_dict
 
 
 @api_log(log=True)
-def detach(caller_id, network_id, vm_id):
-    vpn = VPN.get(caller_id, network_id)
-    vm = VM.get(caller_id, vm_id)
-
-    if vpn.mode != 'isolated':
-        raise CMException('network_not_isolated')
-
-    if vpn.state != 'ok':
-        raise CMException('network_not_running')
+def detach(caller_id, connection_id):
+    connection = Connection.get(caller_id, connection_id)
 
     task = Task()
-    task.vm = vm
+    task.vm = connection.vm
     task.state = 'not active'
-    task.set_prop('vpn_network', network_id)
+    task.set_prop('connection_id', connection.id)
     task.type = 'vpn'
     task.action = 'detach'
-    task.addAfter(Task.objects.filter(type='vpn'))
+    task.addAfter(Task.objects.filter(type__in=['vpn']))
 
 
 @api_log(log=True)

@@ -20,7 +20,7 @@ set -e
 
 case "$1" in
     configure)
-    chmod 600 $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
+    chmod 700 $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
     chown cloudover:cloudover $(DESTDIR)/var/lib/cloudOver/coreVpn/certs
     ;;
 

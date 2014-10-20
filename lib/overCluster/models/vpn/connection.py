@@ -25,15 +25,16 @@ from django.db import models
 class Connection(StateMixin, UserMixin, CoreModel):
     states = [
         'init',
-        'ok',
+        'running',
         'closing',
+        'closed',
     ]
     default_state = 'init'
 
     vpn = models.ForeignKey('VPN')
     vm = models.ForeignKey('VM', null=True, blank=True)
-    client_key = models.TextField()
-    client_crt = models.TextField()
+    client_key = models.TextField(null=True)
+    client_crt = models.TextField(null=True)
 
     def ca_crt(self):
         return self.vpn.ca_crt
