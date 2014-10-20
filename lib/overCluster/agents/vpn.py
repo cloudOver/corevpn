@@ -191,22 +191,27 @@ class AgentThread(BaseAgent):
 
 
     def attach(self, task):
-        vpn = VPN.objects.get(pk=int(task.get_prop('vpn_id')))
+        connection = Connection.objects.get(pk=int(task.get_prop('connection_id')))
 
-        if task.vm.state != 'running':
+        if not connection.vm.in_state('running'):
             raise Exception('vpn_vm_not_running')
 
-        key_name = 'vm-%d' % task.vm.id
-        self.mk_cert(vpn, key_name)
+        if not connection.vpn.in_state('running'):
+            raise Exception('vpn_not_running')
 
-        conn = Connection()
-        conn.set_state('init')
-        conn.vpn = vpn
-        conn.vm = task.vm
-        conn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.key' % (vpn.id, key_name), 'r').read(1024*1024)
-        conn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.crt' % (vpn.id, key_name), 'r').read(1024*1024)
-        conn.save()
+        if not connection.in_state('init') or connection.client_key != None or connection.client_crt != None:
+            raise Exception('connection_in_use')
+
+        key_name = 'vm-%d' % connection.vm.id
+        self.mk_cert(connection.vpn, key_name)
+
+        connection.client_key = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.key' % (connection.vpn.id, key_name), 'r').read(1024*1024)
+        connection.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%d/%s.crt' % (connection.vpn.id, key_name), 'r').read(1024*1024)
+        connection.set_state('running')
+        connection.save()
 
 
     def detach(self, task):
-        pass
+        conn = Connection.objects.get(pk=int(task.get_prop('connection_id')))
+        conn.set_state('closing')
+        conn.save()
