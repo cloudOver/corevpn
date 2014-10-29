@@ -33,7 +33,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
     ]
     default_state = 'init'
 
-    port = models.IntegerField(null=True, help_text='Port used to estabilish connection between node and network node')
+    port = models.IntegerField(null=True, help_text='Port used to establish connection between node and network node')
     #network = models.ForeignKey('AvailableNetwork')
 
     ca_crt = models.TextField(null=True)
@@ -42,4 +42,5 @@ class VPN(StateMixin, UserMixin, CoreModel):
 
     openvpn_pid = models.IntegerField(null=True)
 
-    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt']
+    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access']
+    editable = [['access', lambda x: x in UserMixin.object_access]]

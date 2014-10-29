@@ -23,7 +23,6 @@ from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
 import subprocess
 import signal
-import sys
 import os
 
 class AgentThread(BaseAgent):
