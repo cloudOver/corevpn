@@ -17,29 +17,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from overCluster.utils.decorators import api_log
+from overCluster.utils.decorators import register
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
-from overCluster.models.core.available_network import AvailableNetwork
-from overCluster.models.core.user import User
 from overCluster.models.core.task import Task
 from overCluster.models.core.vm import VM
 from overCluster.utils.exception import CMException
 
 
-@api_log(log=True)
-def create(caller_id, address, mask):
+@register(auth='token')
+def create(context, address, mask):
     """ Create new isolated, vpn based network. Address and mask are only for user information. There is no dhcp in
     such network
 
     :param address: Network address
     :param mask: Network mask
     """
-    user = User.get(caller_id)
-
     vpn = VPN()
     vpn.state = 'init'
-    vpn.user = user
+    vpn.user = context.user
     vpn.save()
 
     task = Task()
@@ -52,10 +48,10 @@ def create(caller_id, address, mask):
     return vpn.to_dict
 
 
-@api_log(log=True)
-def delete(caller_id, vpn_id):
+@register(auth='token')
+def delete(context, vpn_id):
     """ Delete vpn network """
-    vpn = VPN.get(caller_id, vpn_id)
+    vpn = VPN.get(context.user_id, vpn_id)
 
     task = Task()
     task.state = 'not active'
@@ -65,11 +61,11 @@ def delete(caller_id, vpn_id):
     task.addAfter(Task.objects.filter(type='vpn'))
 
 
-@api_log(log=True)
-def attach(caller_id, vpn_id, vm_id):
+@register(auth='token')
+def attach(context, vpn_id, vm_id):
     """  """
-    vpn = VPN.get(caller_id, vpn_id)
-    vm = VM.get(caller_id, vm_id)
+    vpn = VPN.get(context.user_id, vpn_id)
+    vm = VM.get(context.user_id, vm_id)
 
     if not vpn.in_state('running'):
         raise CMException('network_not_running')
@@ -80,7 +76,7 @@ def attach(caller_id, vpn_id, vm_id):
     connection = Connection()
     connection.vm = vm
     connection.vpn = vpn
-    connection.user = User.get(caller_id)
+    connection.user = context.user
     connection.save()
 
     task = Task()
@@ -94,9 +90,9 @@ def attach(caller_id, vpn_id, vm_id):
     return connection.to_dict
 
 
-@api_log(log=True)
-def detach(caller_id, connection_id):
-    connection = Connection.get(caller_id, connection_id)
+@register(auth='token')
+def detach(context, connection_id):
+    connection = Connection.get(context.user_id, connection_id)
 
     task = Task()
     task.vm = connection.vm
@@ -107,13 +103,19 @@ def detach(caller_id, connection_id):
     task.addAfter(Task.objects.filter(type__in=['vpn']))
 
 
-@api_log(log=True)
-def get_list(caller_id):
-    user = User.get(caller_id)
-    return [v.to_dict for v in VPN.objects.filter(user=user).all()]
+@register(auth='token')
+def get_list(context):
+    return [v.to_dict for v in VPN.objects.filter(user=context.user).all()]
 
 
-@api_log(log=True)
-def client_cert(caller_id, vpn_id):
-    vpn = VPN.get(caller_id, vpn_id)
+@register(auth='token')
+def get_connection_list(context, vpn_id):
+    """ List all connections related to given vpn """
+    vpn = VPN.get(context.user_id, vpn_id)
+    return [v.to_dict for v in vpn.connection_set.all()]
+
+
+@register(auth='token')
+def client_cert(context, vpn_id):
+    vpn = VPN.get(context.user_id, vpn_id)
     return {'cert': vpn.client_crt, 'key': vpn.client_key, 'ca_cert': vpn.ca_crt}

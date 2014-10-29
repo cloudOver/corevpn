@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from overCluster.models.core.available_network import AvailableNetwork
+from overCluster.models.core.group import Group
 from overCluster.models.common_models import CoreModel, UserMixin, StateMixin
 from django.db import models
 
@@ -42,4 +42,5 @@ class Connection(StateMixin, UserMixin, CoreModel):
     def port(self):
         return self.vpn.port
 
-    serializable = ['id', 'state', 'vpn', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port']]
+    serializable = ['id', 'state', 'vpn', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port'], 'access']
+    editable = [['access', lambda x: x in UserMixin.object_access]]
