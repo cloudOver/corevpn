@@ -17,9 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import netaddr
+
 from overCluster.utils.decorators import register
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
+from overCluster.models.core.available_network import AvailableNetwork
 from overCluster.models.core.task import Task
 from overCluster.models.core.vm import VM
 from overCluster.utils.exception import CMException
@@ -33,9 +36,24 @@ def create(context, address, mask):
     :param address: Network address
     :param mask: Network mask
     """
+
+    try:
+        netaddr.IPAddress(address)
+        ipnet = netaddr.IPNetwork(address + '/' + mask)
+    except:
+        raise CMException('network_format_invalid')
+
+    network = AvailableNetwork()
+    network.address = str(ipnet.network)
+    network.mask = ipnet.prefixlen
+    network.mode = 'isolated'
+    network.state = 'ok'
+    network.save()
+
     vpn = VPN()
     vpn.state = 'init'
     vpn.user = context.user
+    vpn.network = network
     vpn.save()
 
     task = Task()
@@ -105,7 +123,12 @@ def detach(context, connection_id):
 
 @register(auth='token')
 def get_list(context):
-    return [v.to_dict for v in VPN.objects.filter(user=context.user).all()]
+    return [v.to_dict for v in VPN.objects.filter(user=context.user).exclude(state='removed').all()]
+
+
+@register(auth='token')
+def get_by_id(context, vpn_id):
+    return VPN.get(context.user_id, vpn_id).to_dict
 
 
 @register(auth='token')
