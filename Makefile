@@ -13,3 +13,5 @@ install:
 
 	mkdir -p $(DESTDIR)/etc/sudoers.d/
 	echo "cloudover ALL=NOPASSWD: /usr/sbin/openvpn" >> $(DESTDIR)/etc/sudoers.d/corevpn
+	echo "cloudover ALL=NOPASSWD: /bin/kill" >> $(DESTDIR)/etc/sudoers.d/corevpn
+
