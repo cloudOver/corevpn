@@ -1,3 +1,11 @@
+corevpn (0.1.5) unstable; urgency=low
+
+  * Using networkConf to generate interface names with fixed length
+  * Small fixes
+
+ -- Maciej Nabozny <mn@mnabozny.pl> 23 Nov 2014 10:09:44 +0200
+
+
 corevpn (0.1.4) unstable; urgency=low
 
   * Added openvpn and openssl dependency
