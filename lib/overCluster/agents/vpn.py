@@ -21,8 +21,8 @@ import signal
 from overCluster.agents.base_agent import BaseAgent
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
+from networkConf import config as networkConf
 import subprocess
-import signal
 import os
 
 class AgentThread(BaseAgent):
@@ -126,7 +126,7 @@ class AgentThread(BaseAgent):
         p = subprocess.Popen(['sudo',
                               'openvpn',
                               '--user', 'cloudover',
-                              '--dev', 'corevpn%s' % vpn.id[:6],
+                              '--dev', str('cv-%s' % vpn.id)[:networkConf.IFACE_NAME_LENGTH],
                               '--dev-type', 'tap',
                               '--persist-tun',
                               '--mode', 'server',
