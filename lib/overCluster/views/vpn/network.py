@@ -103,6 +103,7 @@ def attach(context, vpn_id, vm_id):
     task.set_prop('connection_id', connection.id)
     task.type = 'vpn'
     task.action = 'attach'
+    task.ignore_errors = True
     task.addAfter(Task.objects.filter(type__in=['vpn']))
 
     return connection.to_dict
@@ -118,6 +119,7 @@ def detach(context, connection_id):
     task.set_prop('connection_id', connection.id)
     task.type = 'vpn'
     task.action = 'detach'
+    task.ignore_errors = False
     task.addAfter(Task.objects.filter(type__in=['vpn']))
 
 
