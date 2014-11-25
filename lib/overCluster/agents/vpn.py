@@ -221,8 +221,17 @@ class AgentThread(BaseAgent):
         key_name = 'vm-%s' % connection.vm.id
         self.mk_cert(connection.vpn, key_name)
 
-        interface_name = str('cv%s' % connection.id)[:networkConf.IFACE_NAME_LENGTH]
-        Device.create(connection.id, task.vm, 'devices/vpn.xml', {'connection': connection, 'interface': interface_name})
+        # Create network with bridge
+        bridge_name = str('cb%s' % connection.id)[:networkConf.IFACE_NAME_LENGTH]
+
+        conn = libvirt.open(task.vm.node.conn_string)
+        conn.networkCreateXML('''<network>
+          <name>vpn-%s</name>
+          <bridge name='%s' stp='on' delay='0' />
+        </network>''' % (connection.id, bridge_name))
+        conn.close()
+
+        Device.create(connection.id, task.vm, 'devices/vpn.xml', {'connection': connection})
 
         task.vm.libvirt_redefine()
 
