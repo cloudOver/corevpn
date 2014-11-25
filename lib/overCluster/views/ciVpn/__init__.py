@@ -17,22 +17,4 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from overCluster.utils.decorators import register
-from overCluster.models.vpn.connection import Connection
-from overCluster.models.core.vm import VM
-from overCluster.models.core.node import Node
-from overCluster.utils.exception import CMException
-
-@register(auth="node")
-def get_connection(context, vm_name):
-    try:
-        user_id = int(vm_name.split('-')[1])
-        vm_id = int(vm_name.split('-')[2])
-
-        vm = VM.objects.filter(user_id=user_id).filter(node=context.node).get(pk=vm_id)
-    except:
-        context.log.debug("Unknown vm from hook: %s" % vm_name)
-        raise CMException('vm_not_found')
-
-    connection = Connection.objects.get(vm=vm)
-    return connection.to_dict
+from overCluster.views.ciVpn.vm import *

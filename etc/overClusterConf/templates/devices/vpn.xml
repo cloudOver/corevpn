@@ -1,0 +1,7 @@
+<!--
+Requires:
+* connection
+-->
+<interface type='direct' trustGuestRxFilters='yes'>
+    <source dev='{{ interface }}'/>
+</interface>
