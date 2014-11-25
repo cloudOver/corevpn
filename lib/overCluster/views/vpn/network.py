@@ -23,13 +23,14 @@ from overCluster.utils.decorators import register
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
 from overCluster.models.core.available_network import AvailableNetwork
+from overCluster.models.core.user_network import UserNetwork
 from overCluster.models.core.task import Task
 from overCluster.models.core.vm import VM
 from overCluster.utils.exception import CMException
 
 
 @register(auth='token')
-def create(context, address, mask):
+def create(context, name, address, mask):
     """ Create new isolated, vpn based network. Address and mask are only for user information. There is no dhcp in
     such network
 
@@ -49,6 +50,14 @@ def create(context, address, mask):
     network.mode = 'isolated'
     network.state = 'ok'
     network.save()
+
+    subnet = UserNetwork()
+    subnet.address = str(ipnet.network)
+    subnet.mask = ipnet.prefixlen
+    subnet.available_network = network
+    subnet.name = name
+    subnet.save()
+    subnet.allocate()
 
     vpn = VPN()
     vpn.state = 'init'
@@ -70,6 +79,9 @@ def create(context, address, mask):
 def delete(context, vpn_id):
     """ Delete vpn network """
     vpn = VPN.get(context.user_id, vpn_id)
+
+    if vpn.connection_set.count() > 0:
+        raise CMException('vpn_in_use')
 
     task = Task()
     task.state = 'not active'
@@ -104,7 +116,7 @@ def attach(context, vpn_id, vm_id):
     task.type = 'vpn'
     task.action = 'attach'
     task.ignore_errors = True
-    task.addAfter(Task.objects.filter(type__in=['vpn']))
+    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm']))
 
     return connection.to_dict
 
@@ -119,7 +131,7 @@ def detach(context, connection_id):
     task.set_prop('connection_id', connection.id)
     task.type = 'vpn'
     task.action = 'detach'
-    task.ignore_errors = False
+    task.ignore_errors = True
     task.addAfter(Task.objects.filter(type__in=['vpn']))
 
 

@@ -16,14 +16,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import signal
 
 from overCluster.agents.base_agent import BaseAgent
+from overCluster.models.core import Device
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
 from networkConf import config as networkConf
+
 import subprocess
+import libvirt
 import os
+
 
 class AgentThread(BaseAgent):
     task_type = 'vpn'
@@ -208,6 +211,11 @@ class AgentThread(BaseAgent):
         key_name = 'vm-%s' % connection.vm.id
         self.mk_cert(connection.vpn, key_name)
 
+        interface_name = str('cv%s' % connection.id)[:networkConf.IFACE_NAME_LENGTH]
+        Device.create(connection.id, task.vm.id, 'devices/vpn.xml', {'connection': connection, 'interface': interface_name})
+
+        task.vm.libvirt_redefine()
+
         connection.client_key = open('/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (connection.vpn.id, key_name), 'r').read(1024*1024)
         connection.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%s/%s.crt' % (connection.vpn.id, key_name), 'r').read(1024*1024)
         connection.set_state('running')
@@ -218,3 +226,8 @@ class AgentThread(BaseAgent):
         conn = Connection.objects.get(pk=task.get_prop('connection_id'))
         conn.set_state('closing')
         conn.save()
+
+        for device in Device.objects.filter(object_id=conn.id):
+            device.delete()
+
+        task.vm.redefine()
