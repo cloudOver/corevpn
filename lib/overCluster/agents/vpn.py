@@ -59,6 +59,16 @@ class AgentThread(BaseAgent):
         except:
             pass
 
+        try:
+            conn = Connection.objects.get(pk=task.get_prop('connection_id'))
+            conn.set_state('failed')
+            conn.save()
+        except:
+            pass
+
+        task.ignore_errors = True
+        task.save()
+
         BaseAgent.task_failed(self, task, exception)
 
     def mk_ca(self, vpn):
@@ -106,7 +116,7 @@ class AgentThread(BaseAgent):
                          '-new',
                          '-key', '/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (vpn.id, key_name),
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.csr' % (vpn.id, key_name),
-                         '-subj', '/CN=%s-vpn-%s/O=CloudOver/OU=CoreVpn' % (key_name, vpn.id)])
+                         '-subj', '/CN=%s/O=CloudOver/OU=CoreVpn/' % key_name])
 
         subprocess.call(['openssl',
                          'x509',
@@ -212,7 +222,7 @@ class AgentThread(BaseAgent):
         self.mk_cert(connection.vpn, key_name)
 
         interface_name = str('cv%s' % connection.id)[:networkConf.IFACE_NAME_LENGTH]
-        Device.create(connection.id, task.vm.id, 'devices/vpn.xml', {'connection': connection, 'interface': interface_name})
+        Device.create(connection.id, task.vm, 'devices/vpn.xml', {'connection': connection, 'interface': interface_name})
 
         task.vm.libvirt_redefine()
 
