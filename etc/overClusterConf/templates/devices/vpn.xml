@@ -2,6 +2,7 @@
 Requires:
 * connection
 -->
-<interface type='direct' trustGuestRxFilters='yes'>
-    <source dev='{{ interface }}'/>
+<interface type='network'>
+  <source network='vpn-{{ connection.id }}'/>
+  <model type='{{ connection.vm.base_image.network_device }}'/>
 </interface>

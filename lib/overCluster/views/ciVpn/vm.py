@@ -26,10 +26,8 @@ from overCluster.utils.exception import CMException
 @register(auth="node")
 def get_connection(context, vm_name):
     try:
-        user_id = int(vm_name.split('-')[1])
-        vm_id = int(vm_name.split('-')[2])
-
-        vm = VM.objects.filter(user_id=user_id).filter(node=context.node).get(pk=vm_id)
+        vm_id = vm_name[3:]
+        vm = VM.objects.filter(node=context.node).get(pk=vm_id)
     except:
         context.log.debug("Unknown vm from hook: %s" % vm_name)
         raise CMException('vm_not_found')
