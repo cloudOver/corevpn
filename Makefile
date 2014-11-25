@@ -7,8 +7,8 @@ install:
 	mkdir -p $(DESTDIR)/usr/lib/cloudOver/
 	cp -r lib/overCluster $(DESTDIR)/usr/lib/cloudOver/
 
-	mkdir -p $(DESTDIR)/etc/coudOver/
-	cp -r etc/overCluster $(DESTDIR)/etc/cloudOver/
+	mkdir -p $(DESTDIR)/etc/cloudOver/
+	cp -r etc/overClusterConf $(DESTDIR)/etc/cloudOver/
 
 	mkdir -p $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
 	mkdir -p $(DESTDIR)/var/log/cloudOver/coreVpn/
