@@ -1,10 +1,10 @@
-corevpn (0.1.5) unstable; urgency=low
+corevpn (0.1.6) stable; urgency=low
 
   * Using networkConf to generate interface names with fixed length
   * Triggering vpn cleanup on vm cleanup
   * Small fixes
 
- -- Maciej Nabozny <mn@mnabozny.pl> 23 Nov 2014 10:09:44 +0200
+ -- Maciej Nabozny <mn@mnabozny.pl> 26 Nov 2014 10:09:44 +0200
 
 
 corevpn (0.1.4) unstable; urgency=low
