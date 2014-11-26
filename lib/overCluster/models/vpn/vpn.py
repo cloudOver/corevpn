@@ -34,7 +34,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
     default_state = 'init'
 
     port = models.IntegerField(null=True, help_text='Port used to establish connection between node and network node')
-    network = models.ForeignKey('AvailableNetwork')
+    name = models.CharField(max_length=256)
 
     ca_crt = models.TextField(null=True)
     client_key = models.TextField(null=True)
