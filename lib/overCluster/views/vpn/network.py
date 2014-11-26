@@ -30,7 +30,7 @@ from overCluster.utils.exception import CMException
 
 
 @register(auth='token')
-def create(context, name, address, mask):
+def create(context, name):
     """ Create new isolated, vpn based network. Address and mask are only for user information. There is no dhcp in
     such network
 
@@ -38,31 +38,10 @@ def create(context, name, address, mask):
     :param mask: Network mask
     """
 
-    try:
-        netaddr.IPAddress(address)
-        ipnet = netaddr.IPNetwork(address + '/' + mask)
-    except:
-        raise CMException('network_format_invalid')
-
-    network = AvailableNetwork()
-    network.address = str(ipnet.network)
-    network.mask = ipnet.prefixlen
-    network.mode = 'isolated'
-    network.state = 'ok'
-    network.save()
-
-    subnet = UserNetwork()
-    subnet.address = str(ipnet.network)
-    subnet.mask = ipnet.prefixlen
-    subnet.available_network = network
-    subnet.name = name
-    subnet.save()
-    subnet.allocate()
-
     vpn = VPN()
     vpn.state = 'init'
+    vpn.name = name
     vpn.user = context.user
-    vpn.network = network
     vpn.save()
 
     task = Task()
