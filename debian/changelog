@@ -1,4 +1,4 @@
-corevpn (0.1.6) stable; urgency=low
+corevpn (0.1.7) stable; urgency=low
 
   * Using networkConf to generate interface names with fixed length
   * Triggering vpn cleanup on vm cleanup
