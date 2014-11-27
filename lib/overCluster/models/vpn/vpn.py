@@ -42,5 +42,5 @@ class VPN(StateMixin, UserMixin, CoreModel):
 
     openvpn_pid = models.IntegerField(null=True)
 
-    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access', 'network']
-    editable = [['access', lambda x: x in UserMixin.object_access], ]
+    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access', 'name']
+    editable = ['name', ['access', lambda x: x in UserMixin.object_access], ]
