@@ -17,16 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import netaddr
-
+from overClusterConf import config as coreConf
 from overCluster.utils.decorators import register
+from overCluster.utils.exception import CMException
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
-from overCluster.models.core.available_network import AvailableNetwork
-from overCluster.models.core.user_network import UserNetwork
 from overCluster.models.core.task import Task
 from overCluster.models.core.vm import VM
-from overCluster.utils.exception import CMException
 
 
 @register(auth='token')
@@ -79,7 +76,7 @@ def attach(context, vpn_id, vm_id):
     if not vpn.in_state('running'):
         raise CMException('network_not_running')
 
-    if not vm.in_state('stopped'):
+    if not vm.in_state('stopped') and coreConf.CHECK_STATES:
         raise CMException('vm_not_stopped')
 
     connection = Connection()
@@ -103,6 +100,12 @@ def attach(context, vpn_id, vm_id):
 @register(auth='token')
 def detach(context, connection_id):
     connection = Connection.get(context.user_id, connection_id)
+
+    if connection.vm == None:
+        raise CMException('not_connected')
+
+    if not connection.vm.in_state('stopped') and coreConf.CHECK_STATES:
+        raise CMException('vm_not_stopped')
 
     task = Task()
     task.vm = connection.vm

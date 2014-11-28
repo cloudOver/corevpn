@@ -1,7 +1,8 @@
-corevpn (0.1.7) stable; urgency=low
+corevpn (0.1.8) stable; urgency=low
 
   * Using networkConf to generate interface names with fixed length
   * Triggering vpn cleanup on vm cleanup
+  * Checking for vm state in attach
   * Small fixes
 
  -- Maciej Nabozny <mn@mnabozny.pl> 26 Nov 2014 10:09:44 +0200
