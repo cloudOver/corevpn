@@ -131,7 +131,7 @@ def get_by_id(context, vpn_id):
 def get_connection_list(context, vpn_id):
     """ List all connections related to given vpn """
     vpn = VPN.get(context.user_id, vpn_id)
-    return [v.to_dict for v in vpn.connection_set.all()]
+    return [v.to_dict for v in vpn.connection_set.exclude(state='closed').all()]
 
 
 @register(auth='token')

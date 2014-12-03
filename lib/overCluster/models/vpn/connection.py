@@ -42,5 +42,5 @@ class Connection(StateMixin, UserMixin, CoreModel):
     def port(self):
         return self.vpn.port
 
-    serializable = ['id', 'state', 'vpn', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port'], 'access']
+    serializable = ['id', 'state', 'vpn_id', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port'], 'access']
     editable = [['access', lambda x: x in UserMixin.object_access]]
