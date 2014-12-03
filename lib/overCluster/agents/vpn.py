@@ -249,11 +249,20 @@ class AgentThread(BaseAgent):
         for device in Device.objects.filter(object_id=connection.id):
             device.delete()
 
-        task.vm.libvirt_redefine()
+        try:
+            task.vm.libvirt_redefine()
+        except:
+            pass
 
         conn = libvirt.open(task.vm.node.conn_string)
-        net = conn.networkLookupByName('vpn-' + connection.id)
-        net.destroy()
+
+        try:
+            net = conn.networkLookupByName('vpn-' + connection.id)
+            net.destroy()
+        except:
+            pass
+
+        conn.close()
 
         connection.set_state('closed')
         connection.save()

@@ -114,7 +114,7 @@ def detach(context, connection_id):
     task.type = 'vpn'
     task.action = 'detach'
     task.ignore_errors = True
-    task.addAfter(Task.objects.filter(type__in=['vpn']))
+    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm']))
 
 
 @register(auth='token')

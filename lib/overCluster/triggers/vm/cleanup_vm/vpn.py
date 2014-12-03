@@ -18,16 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import libvirt
-from overCluster.models.core import Device
-
+from overCluster.models.core.device import Device
+from overCluster.models.core.task import Task
 
 def task_finished(task):
-    conn = libvirt.open(task.vm.node.conn_string)
-
     for connection in task.vm.connection_set.all():
-        net = conn.networkLookupByName('vpn-%s' % connection.id)
-        net.destroy()
-        device = Device.objects.filter(object_id=connection.id)
-        device.delete()
-
-    conn.close()
+        detach = Task()
+        detach.vm = task.vm
+        detach.state = 'not active'
+        detach.set_prop('connection_id', connection.id)
+        detach.type = 'vpn'
+        detach.action = 'detach'
+        detach.ignore_errors = True
+        detach.addAfter(Task.objects.filter(type__in=['vpn', 'vm']))
