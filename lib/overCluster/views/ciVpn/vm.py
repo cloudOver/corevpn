@@ -33,7 +33,7 @@ def get_connection(context, vm_name):
         raise CMException('vm_not_found')
 
     try:
-        connection = Connection.objects.get(vm=vm)
-        return connection.to_dict
+        connections = Connection.objects.filter(vm=vm)
+        return [conn.to_dict for conn in connections]
     except:
         raise CMException('vm_not_attached')

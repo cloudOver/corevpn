@@ -242,11 +242,18 @@ class AgentThread(BaseAgent):
 
 
     def detach(self, task):
-        conn = Connection.objects.get(pk=task.get_prop('connection_id'))
-        conn.set_state('closing')
-        conn.save()
+        connection = Connection.objects.get(pk=task.get_prop('connection_id'))
+        connection.set_state('closing')
+        connection.save()
 
-        for device in Device.objects.filter(object_id=conn.id):
+        for device in Device.objects.filter(object_id=connection.id):
             device.delete()
 
-        task.vm.redefine()
+        task.vm.libvirt_redefine()
+
+        conn = libvirt.open(task.vm.node.conn_string)
+        net = conn.networkLookupByName('vpn-' + connection.id)
+        net.destroy()
+
+        connection.set_state('closed')
+        connection.save()
