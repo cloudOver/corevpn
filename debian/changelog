@@ -1,5 +1,6 @@
-corevpn (0.1.10) stable; urgency=low
+corevpn (0.1.12) stable; urgency=low
 
+  * Small fixes
   * Support for multiple connections with one vm
   * Fixes in libvirt connection management
 

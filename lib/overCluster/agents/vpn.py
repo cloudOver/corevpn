@@ -160,7 +160,7 @@ class AgentThread(BaseAgent):
 
 
     def create(self, task):
-        vpn = VPN.objects.select_for_update().get(pk=task.get_prop('vpn_id'))
+        vpn = VPN.objects.get(pk=task.get_prop('vpn_id'))
         vpn.set_state('init')
         vpn.save()
 
@@ -224,7 +224,7 @@ class AgentThread(BaseAgent):
         # Create network with bridge
         bridge_name = str('cb%s' % connection.id)[:networkConf.IFACE_NAME_LENGTH]
 
-        conn = libvirt.open(task.vm.node.conn_string)
+        conn = task.vm.node.libvirt_conn()
         conn.networkCreateXML('''<network>
           <name>vpn-%s</name>
           <bridge name='%s' stp='on' delay='0' />
@@ -254,7 +254,7 @@ class AgentThread(BaseAgent):
         except:
             pass
 
-        conn = libvirt.open(task.vm.node.conn_string)
+        conn = task.vm.node.libvirt_conn()
 
         try:
             net = conn.networkLookupByName('vpn-' + connection.id)
