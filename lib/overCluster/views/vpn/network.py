@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from django.db.models import Q
+
 from overClusterConf import config as coreConf
 from overCluster.utils.decorators import register
 from overCluster.utils.exception import CMException
@@ -92,7 +94,7 @@ def attach(context, vpn_id, vm_id):
     task.type = 'vpn'
     task.action = 'attach'
     task.ignore_errors = True
-    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm']))
+    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm', 'node']).filter(Q(node=None) | Q(node=connection.vm.node)))
 
     return connection.to_dict
 
@@ -114,7 +116,7 @@ def detach(context, connection_id):
     task.type = 'vpn'
     task.action = 'detach'
     task.ignore_errors = True
-    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm']))
+    task.addAfter(Task.objects.filter(type__in=['vpn', 'vm', 'node']).filter(Q(node=None) | Q(node=connection.vm.node)))
 
 
 @register(auth='token')
