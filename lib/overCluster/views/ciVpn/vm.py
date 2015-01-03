@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from overCluster.utils.decorators import register
 from overCluster.models.vpn.connection import Connection
 from overCluster.models.core.vm import VM
-from overCluster.models.core.node import Node
 from overCluster.utils.exception import CMException
 
 @register(auth="node")
