@@ -22,6 +22,10 @@ case "$1" in
     configure)
     chmod -R 700 /var/lib/cloudOver/coreVpn/certs/
     chown -R cloudover:cloudover /var/lib/cloudOver/coreVpn/certs
+
+    touch /usr/lib/cloudOver/overCluster/triggers/vm/__init__.py || /bin/true
+    touch /usr/lib/cloudOver/overCluster/triggers/vm/cleanup_vm/__init__.py || /bin/true
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
