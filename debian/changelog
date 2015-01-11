@@ -1,11 +1,10 @@
-corevpn (0.1.14) stable; urgency=low
+corevpn (0.2) stable; urgency=low
 
-  * Small fixes
+  * First stable version
   * Support for multiple connections with one vm
   * Fixes in libvirt connection management
-  * Removed unused imports
 
- -- Maciej Nabozny <mn@mnabozny.pl> 03 Dec 2014 10:09:44 +0200
+ -- Maciej Nabozny <mn@mnabozny.pl> 11 Jan 2014 10:00:00 +0200
 
 
 corevpn (0.1.8) stable; urgency=low
