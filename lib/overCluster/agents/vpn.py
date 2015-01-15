@@ -22,9 +22,8 @@ from overCluster.models.core import Device
 from overCluster.models.vpn.vpn import VPN
 from overCluster.models.vpn.connection import Connection
 from networkConf import config as networkConf
-
+from coreVpnConf import config as coreVpnConf
 import subprocess
-import libvirt
 import os
 
 
@@ -84,7 +83,7 @@ class AgentThread(BaseAgent):
         subprocess.call(['openssl',
                          'genrsa',
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
-                         '2048'])
+                         str(coreVpnConf.CA_KEY_SIZE)])
 
         subprocess.call(['openssl',
                          'req',
@@ -92,7 +91,7 @@ class AgentThread(BaseAgent):
                          '-new',
                          '-nodes',
                          '-key', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
-                         '-days', '3650',
+                         '-days', str(coreVpnConf.CERTIFICATE_LIFETIME),
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id,
                          '-subj', '/CN=CoreVpn-%s/O=CloudOver/OU=CoreVpn' % vpn.id])
 
@@ -108,7 +107,7 @@ class AgentThread(BaseAgent):
         subprocess.call(['openssl',
                          'genrsa',
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (vpn.id, key_name),
-                         '2048'])
+                         str(coreVpnConf.CLIENT_KEY_SIZE)])
 
         # Create certificate sign request
         subprocess.call(['openssl',
@@ -126,7 +125,7 @@ class AgentThread(BaseAgent):
                          '-CAkey', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
                          '-CAcreateserial',
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.crt' % (vpn.id, key_name),
-                         '-days', '3650'])
+                         '-days', str(coreVpnConf.CERTIFICATE_LIFETIME)])
 
 
     def mk_dh(self, vpn):
@@ -175,7 +174,7 @@ class AgentThread(BaseAgent):
         self.mk_dh(vpn)
 
 
-        port = 1194
+        port = coreVpnConf.PORT_BASE
         used_ports = []
         for v in VPN.objects.filter(state__in=['running', 'init']):
             used_ports.append(v.port)
