@@ -1,0 +1,12 @@
+# Default certificate authority key size
+CA_KEY_SIZE = 2048
+
+# Default client key size
+CLIENT_KEY_SIZE = 2048
+
+# Default certificate lifetime in days
+CERTIFICATE_LIFETIME = 3650
+
+# Openvpn base port
+PORT_BASE = 1194
+
