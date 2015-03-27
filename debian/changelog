@@ -1,4 +1,13 @@
-corevpn (0.2.2) stable; urgency=low
+corevpn (0.2.3) stable; urgency=low
+
+  * Compatibile with OC 1.3
+  * Parameters validation
+  * Fixed bug with configs
+
+ -- Maciej Nabozny <mn@mnabozny.pl> 27 Mar 2015 10:00:00 +0200
+
+
+corevpn (0.2.3) stable; urgency=low
 
   * First stable version
   * Support for multiple connections with one vm
