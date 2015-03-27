@@ -10,6 +10,7 @@ install:
 	mkdir -p $(DESTDIR)/etc/cloudOver/
 	cp -r etc/overClusterConf $(DESTDIR)/etc/cloudOver/
 	cp -r etc/coreVpnConf $(DESTDIR)/etc/cloudOver/
+	cp $(DESTDIR)/etc/cloudOver/coreVpnConf/config.example $(DESTDIR)/etc/cloudOver/coreVpnConf/config.py
 
 	mkdir -p $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
 	mkdir -p $(DESTDIR)/var/log/cloudOver/coreVpn/

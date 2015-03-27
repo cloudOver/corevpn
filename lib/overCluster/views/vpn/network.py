@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from django.db.models import Q
 
 from overClusterConf import config as coreConf
+from overCluster.utils import validation as v
 from overCluster.utils.decorators import register
 from overCluster.utils.exception import CMException
 from overCluster.models.vpn.vpn import VPN
@@ -28,7 +29,7 @@ from overCluster.models.core.task import Task
 from overCluster.models.core.vm import VM
 
 
-@register(auth='token')
+@register(auth='token', validate={'name': v.is_string()})
 def create(context, name):
     """ Create new isolated, vpn based network. Address and mask are only for user information. There is no dhcp in
     such network
@@ -53,7 +54,7 @@ def create(context, name):
     return vpn.to_dict
 
 
-@register(auth='token')
+@register(auth='token', validate={'vpn_id': v.is_id()})
 def delete(context, vpn_id):
     """ Delete vpn network """
     vpn = VPN.get(context.user_id, vpn_id)
@@ -69,7 +70,7 @@ def delete(context, vpn_id):
     task.addAfter(Task.objects.filter(type='vpn'))
 
 
-@register(auth='token')
+@register(auth='token', validate={'vpn_id': v.is_id(), 'vm_id': v.is_id()})
 def attach(context, vpn_id, vm_id):
     """  """
     vpn = VPN.get(context.user_id, vpn_id)
@@ -99,7 +100,7 @@ def attach(context, vpn_id, vm_id):
     return connection.to_dict
 
 
-@register(auth='token')
+@register(auth='token', validate={'connection_id': v.is_id()})
 def detach(context, connection_id):
     connection = Connection.get(context.user_id, connection_id)
 
@@ -124,19 +125,19 @@ def get_list(context):
     return [v.to_dict for v in VPN.objects.filter(user=context.user).exclude(state='removed').all()]
 
 
-@register(auth='token')
+@register(auth='token', validate={'vpn_id': v.is_id()})
 def get_by_id(context, vpn_id):
     return VPN.get(context.user_id, vpn_id).to_dict
 
 
-@register(auth='token')
+@register(auth='token', validate={'vpn_id': v.is_id()})
 def get_connection_list(context, vpn_id):
     """ List all connections related to given vpn """
     vpn = VPN.get(context.user_id, vpn_id)
     return [v.to_dict for v in vpn.connection_set.exclude(state='closed').all()]
 
 
-@register(auth='token')
+@register(auth='token', validate={'vpn_id': v.is_id()})
 def client_cert(context, vpn_id):
     vpn = VPN.get(context.user_id, vpn_id)
     return {'cert': vpn.client_crt, 'key': vpn.client_key, 'ca_cert': vpn.ca_crt}
