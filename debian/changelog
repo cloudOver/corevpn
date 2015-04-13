@@ -1,3 +1,10 @@
+corevpn (15.04) stable; urgency=low
+
+  * First date-based version
+
+ -- Maciej Nabozny <mn@mnabozny.pl> 13 Apr 2015 10:00:00 +0200
+
+
 corevpn (0.2.3) stable; urgency=low
 
   * Compatibile with OC 1.3
