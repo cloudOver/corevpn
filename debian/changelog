@@ -1,3 +1,10 @@
+corevpn (15.05) unstable; urgency=low
+
+  * Fixed task adding for new task blockers
+
+ -- Maciej Nabozny <mn@mnabozny.pl> 27 May 2015 10:00:00 +0200
+
+
 corevpn (15.04) stable; urgency=low
 
   * First date-based version

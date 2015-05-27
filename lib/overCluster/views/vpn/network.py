@@ -49,6 +49,9 @@ def create(context, name):
     task.set_prop('vpn_id', vpn.id)
     task.type = 'vpn'
     task.action = 'create'
+    task.addAfter(Task.objects.filter(type='vpn').\
+                               exclude(Q(state='ok') | Q(state='canceled') | Q(state='failed')).\
+                               all())
     task.addAfter(Task.objects.filter(type='vpn'))
 
     return vpn.to_dict
@@ -67,7 +70,10 @@ def delete(context, vpn_id):
     task.set_prop('vpn_id', vpn.id)
     task.type = 'vpn'
     task.action = 'delete'
-    task.addAfter(Task.objects.filter(type='vpn'))
+    task.addAfter(Task.objects.filter(type='vpn').\
+                               exclude(Q(state='ok') | Q(state='canceled')).\
+                               exclude(state='failed').\
+                               all())
 
 
 @register(auth='token', validate={'vpn_id': v.is_id(), 'vm_id': v.is_id()})
