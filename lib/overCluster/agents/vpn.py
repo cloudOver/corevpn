@@ -1,9 +1,9 @@
 """
 Copyright (c) 2014 Maciej Nabozny
 
-This file is part of OverCluster project.
+This file is part of CloudOver project.
 
-OverCluster is free software: you can redistribute it and/or modify
+CloudOver is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from overCluster.agents.base_agent import BaseAgent
-from overCluster.models.core import Device
-from overCluster.models.vpn.vpn import VPN
-from overCluster.models.vpn.connection import Connection
+from corecluster.agents.base_agent import BaseAgent
+from corecluster.models.core import Device
+from corecluster.models.vpn.vpn import VPN
+from corecluster.models.vpn.connection import Connection
 from networkConf import config as networkConf
 from coreVpnConf import config as coreVpnConf
 import subprocess

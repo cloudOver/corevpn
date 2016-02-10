@@ -1,9 +1,9 @@
 """
 Copyright (c) 2014 Maciej Nabozny
 
-This file is part of OverCluster project.
+This file is part of CloudOver project.
 
-OverCluster is free software: you can redistribute it and/or modify
+CloudOver is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import libvirt
-from overCluster.models.core.device import Device
-from overCluster.models.core.task import Task
+from corecluster.models.core.device import Device
+from corecluster.models.core.task import Task
 
 def task_finished(task):
     for connection in task.vm.connection_set.all():

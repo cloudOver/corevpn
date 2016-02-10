@@ -1,9 +1,9 @@
 """
 Copyright (c) 2014 Maciej Nabozny
 
-This file is part of OverCluster project.
+This file is part of CloudOver project.
 
-OverCluster is free software: you can redistribute it and/or modify
+CloudOver is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -20,13 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from django.db.models import Q
 
 from overClusterConf import config as coreConf
-from overCluster.utils import validation as v
-from overCluster.utils.decorators import register
-from overCluster.utils.exception import CMException
-from overCluster.models.vpn.vpn import VPN
-from overCluster.models.vpn.connection import Connection
-from overCluster.models.core.task import Task
-from overCluster.models.core.vm import VM
+from corecluster.utils import validation as v
+from corecluster.utils.decorators import register
+from corecluster.utils.exception import CoreException
+from corecluster.models.vpn.vpn import VPN
+from corecluster.models.vpn.connection import Connection
+from corecluster.models.core.task import Task
+from corecluster.models.core.vm import VM
 
 
 @register(auth='token', validate={'name': v.is_string()})
@@ -41,7 +41,7 @@ def create(context, name):
     vpn = VPN()
     vpn.state = 'init'
     vpn.name = name
-    vpn.user = context.user
+    vpn.user_id = context.user_id
     vpn.save()
 
     task = Task()
@@ -63,7 +63,7 @@ def delete(context, vpn_id):
     vpn = VPN.get(context.user_id, vpn_id)
 
     if vpn.connection_set.count() > 0:
-        raise CMException('vpn_in_use')
+        raise CoreException('vpn_in_use')
 
     task = Task()
     task.state = 'not active'
@@ -83,15 +83,15 @@ def attach(context, vpn_id, vm_id):
     vm = VM.get(context.user_id, vm_id)
 
     if not vpn.in_state('running'):
-        raise CMException('network_not_running')
+        raise CoreException('network_not_running')
 
     if not vm.in_state('stopped') and coreConf.CHECK_STATES:
-        raise CMException('vm_not_stopped')
+        raise CoreException('vm_not_stopped')
 
     connection = Connection()
     connection.vm = vm
     connection.vpn = vpn
-    connection.user = context.user
+    connection.user_id = context.user_id
     connection.save()
 
     task = Task()
@@ -111,10 +111,10 @@ def detach(context, connection_id):
     connection = Connection.get(context.user_id, connection_id)
 
     if connection.vm == None:
-        raise CMException('not_connected')
+        raise CoreException('not_connected')
 
     if not connection.vm.in_state('stopped') and coreConf.CHECK_STATES:
-        raise CMException('vm_not_stopped')
+        raise CoreException('vm_not_stopped')
 
     task = Task()
     task.vm = connection.vm
