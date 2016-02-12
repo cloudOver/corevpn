@@ -1,22 +1,18 @@
-DESTDIR=/
-
 all:
-	echo "Nothing to compile"
+	echo Nothing to compile
 
 install:
-	mkdir -p $(DESTDIR)/usr/lib/cloudOver/
-	cp -r lib/overCluster $(DESTDIR)/usr/lib/cloudOver/
+	mkdir -p $(DESTDIR)/etc/corevpn/
+	cp -r config/* $(DESTDIR)/etc/corevpn/
 
-	mkdir -p $(DESTDIR)/etc/cloudOver/
-	cp -r etc/overClusterConf $(DESTDIR)/etc/cloudOver/
-	cp -r etc/coreVpnConf $(DESTDIR)/etc/cloudOver/
-	cp $(DESTDIR)/etc/cloudOver/coreVpnConf/config.example $(DESTDIR)/etc/cloudOver/coreVpnConf/config.py
+egg:
+	python setup.py sdist bdist_egg
 
-	mkdir -p $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
-	mkdir -p $(DESTDIR)/var/log/cloudOver/coreVpn/
-	mkdir -p $(DESTDIR)/var/run/
+egg_install:
+	python setup.py install
 
-	mkdir -p $(DESTDIR)/etc/sudoers.d/
-	echo "cloudover ALL=NOPASSWD: /usr/sbin/openvpn" >> $(DESTDIR)/etc/sudoers.d/corevpn
-	echo "cloudover ALL=NOPASSWD: /bin/kill" >> $(DESTDIR)/etc/sudoers.d/corevpn
+egg_upload:
+	python setup.py sdist upload
 
+egg_clean:
+	rm -rf build/ dist/ corevpn.egg-info/

@@ -1,8 +1,0 @@
-<!--
-Requires:
-* connection
--->
-<interface type='network'>
-  <source network='vpn-{{ connection.id }}'/>
-  <model type='{{ connection.vm.base_image.network_device }}'/>
-</interface>

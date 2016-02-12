@@ -17,30 +17,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from corecluster.models.core.group import Group
 from corecluster.models.common_models import CoreModel, UserMixin, StateMixin
 from django.db import models
+from corecluster.models.core import Subnet
 
 
-class Connection(StateMixin, UserMixin, CoreModel):
+class VPN(StateMixin, UserMixin, CoreModel):
     states = [
-        'init',
-        'running',
-        'closing',
-        'closed',
+        'init',         # VPN is beeing created
+        'running',      # VPN is running
+        'suspended',    # VPN is suspended (vpn agent is not running or was stopped)
+        'failed',       # VPN failed
+        'removing',     # VPN is beeing removed
+        'removed',      # VPN is not running and was cleaned up
     ]
     default_state = 'init'
 
-    vpn = models.ForeignKey('VPN')
-    vm = models.ForeignKey('VM', null=True, blank=True)
+    port = models.IntegerField(null=True, help_text='Port used to establish connection between node and network node')
+    name = models.CharField(max_length=256)
+    network = models.ForeignKey(Subnet)
+
+
+    ca_crt = models.TextField(null=True)
     client_key = models.TextField(null=True)
     client_crt = models.TextField(null=True)
 
-    def ca_crt(self):
-        return self.vpn.ca_crt
+    openvpn_pid = models.IntegerField(null=True)
 
-    def port(self):
-        return self.vpn.port
-
-    serializable = ['id', 'state', 'vpn_id', 'vm_id', 'client_key', 'client_crt', ['ca_crt', 'ca_crt'], ['port', 'port'], 'access']
-    editable = [['access', lambda x: x in UserMixin.object_access]]
+    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access', 'name']
+    editable = ['name', ['access', lambda x: x in UserMixin.object_access], ]
