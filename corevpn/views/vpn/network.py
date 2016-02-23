@@ -49,7 +49,7 @@ def create(context, name, network_id):
     task = Task()
     task.type = 'vpn'
     task.action = 'create'
-    task.append_to([vpn, network], broadcast=True)
+    task.append_to([vpn, network])
 
     return vpn.to_dict
 

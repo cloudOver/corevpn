@@ -8,6 +8,6 @@ Homepage: http://cloudover.org/coredav/
 
 Package: corevpn
 Architecture: all
-Depends: overcluster-core, openvpn, openssl
+Depends: corecluster, openvpn, openssl
 Description: VPN based networking for OverCluster-core
 
