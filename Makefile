@@ -4,6 +4,7 @@ all:
 install:
 	mkdir -p $(DESTDIR)/etc/corevpn/
 	cp -r config/* $(DESTDIR)/etc/corevpn/
+	mkdir -p $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
 	python setup.py install --root=$(DESTDIR)
 
 egg:

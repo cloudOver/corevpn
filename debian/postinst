@@ -20,7 +20,6 @@ set -e
 
 case "$1" in
     configure)
-    pip install --upgrade corevpn==16.02.01
     chmod -R 700 /var/lib/cloudOver/coreVpn/certs/
     chown -R cloudover:cloudover /var/lib/cloudOver/coreVpn/certs
 

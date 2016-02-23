@@ -19,11 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from corecluster.agents.base_agent import BaseAgent
-from corecluster.settings import networkConfig
 from corenetwork.utils import system
 from corevpn.models.vpn import VPN
+
 import imp
 import os
+import time
+
 
 coreVpnConf = imp.load_source('vpnConfig', '/etc/corevpn/config.py')
 
@@ -32,23 +34,24 @@ class AgentThread(BaseAgent):
     task_type = 'vpn'
     supported_actions = ['create', 'delete']
 
-    def init(self):
-        super(AgentThread, self).init()
-        for vpn in VPN.objects.filter(state='suspended').all():
-            self.mk_openvpn(vpn)
-            vpn.set_state('running')
-            vpn.save()
-
-
-    def cleanup(self):
-        for vpn in VPN.objects.filter(state='running').all():
-            vpn.set_state('suspended')
-            try:
-                system.call(['sudo', 'kill', '-15', str(vpn.openvpn_pid)])
-            except:
-                pass
-            vpn.save()
-        super(AgentThread, self).cleanup()
+    #TODO: This may be harmful on multi-agent environments. Rewrite it with broadcast tasks
+    # def init(self):
+    #     super(AgentThread, self).init()
+    #     for vpn in VPN.objects.filter(state='suspended').all():
+    #         self.mk_openvpn(vpn)
+    #         vpn.set_state('running')
+    #         vpn.save()
+    #
+    #
+    # def cleanup(self):
+    #     for vpn in VPN.objects.filter(state='running').all():
+    #         vpn.set_state('suspended')
+    #         try:
+    #             system.call(['sudo', 'kill', '-15', str(vpn.openvpn_pid)])
+    #         except:
+    #             pass
+    #         vpn.save()
+    #     super(AgentThread, self).cleanup()
 
 
     def task_failed(self, task, exception):
@@ -126,11 +129,11 @@ class AgentThread(BaseAgent):
                          '-out', '/var/lib/cloudOver/coreVpn/certs/%s/dh1024.pem' % vpn.id,
                          '1024'])
 
-    def mk_openvpn(self, vpn):
+    def mk_openvpn(self, vpn, network):
         p = system.Popen(['sudo',
                           'openvpn',
                           '--user', 'cloudover',
-                          '--dev', str('cv-%s' % vpn.id)[:networkConfig.IFACE_NAME_LENGTH],
+                          '--dev', vpn.interface_name,
                           '--dev-type', 'tap',
                           '--persist-tun',
                           '--mode', 'server',
@@ -148,11 +151,23 @@ class AgentThread(BaseAgent):
                           '--client-to-client',
                           '--topology', 'p2p'])
         vpn.openvpn_pid = p.pid
-        
+
+        for i in xrange(60):
+            if not os.path.exists('/sys/class/net/' + vpn.interface_name):
+                time.sleep(1)
+                continue
+            else:
+                system.call(['sudo', 'ip'
+                             'link',
+                             'set', vpn.interface_name,
+                             'netns', network.netns_name])
+                break
 
 
     def create(self, task):
-        vpn = VPN.objects.get(pk=task.get_prop('vpn_id'))
+        network = task.obj_get('Subnet')
+        vpn = task.obj_get('VPN')
+
         vpn.set_state('init')
         vpn.save()
 
@@ -166,16 +181,16 @@ class AgentThread(BaseAgent):
 
         self.mk_dh(vpn)
 
-
         port = coreVpnConf.PORT_BASE
         used_ports = []
         for v in VPN.objects.filter(state__in=['running', 'init']):
             used_ports.append(v.port)
+
         while port in used_ports and port < 10000:
             port = port + 1
 
         vpn.port = port
-        self.mk_openvpn(vpn)
+        self.mk_openvpn(vpn, network)
 
         vpn.set_state('running')
         vpn.save()

@@ -1,5 +1,6 @@
 """
-Copyright (c) 2014 Maciej Nabozny
+Copyright (c) 2014-2015 Maciej Nabozny
+              2016 Marta Nabozny
 
 This file is part of CloudOver project.
 
@@ -17,9 +18,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from corecluster.models.common_models import CoreModel, UserMixin, StateMixin
 from django.db import models
+
+from corecluster.models.common_models import CoreModel, UserMixin, StateMixin
 from corecluster.models.core import Subnet
+from corecluster.settings import networkConfig
 
 
 class VPN(StateMixin, UserMixin, CoreModel):
@@ -47,3 +50,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
 
     serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access', 'name']
     editable = ['name', ['access', lambda x: x in UserMixin.object_access], ]
+
+    @property
+    def interface_name(self):
+        return str('cv-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
