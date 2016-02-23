@@ -4,6 +4,7 @@ all:
 install:
 	mkdir -p $(DESTDIR)/etc/corevpn/
 	cp -r config/* $(DESTDIR)/etc/corevpn/
+	python setup.py install --root=$(DESTDIR)
 
 egg:
 	python setup.py sdist bdist_egg

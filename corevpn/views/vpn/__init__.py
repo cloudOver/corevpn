@@ -1,5 +1,6 @@
 """
 Copyright (c) 2014 Maciej Nabozny
+              2016 Marta Nabozny
 
 This file is part of CloudOver project.
 

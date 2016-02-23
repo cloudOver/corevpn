@@ -33,6 +33,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
     ]
     default_state = 'init'
 
+    address = models.CharField(max_length=256, help_text='Endpoint address')
     port = models.IntegerField(null=True, help_text='Port used to establish connection between node and network node')
     name = models.CharField(max_length=256)
     network = models.ForeignKey(Subnet)

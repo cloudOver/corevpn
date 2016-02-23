@@ -19,14 +19,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from corecluster.agents.base_agent import BaseAgent
+from corecluster.settings import networkConfig
 from corenetwork.utils import system
 from corevpn.models.vpn import VPN
+import imp
 import os
+
+coreVpnConf = imp.load_source('vpnConfig', '/etc/corevpn/config.py')
 
 
 class AgentThread(BaseAgent):
     task_type = 'vpn'
-    supported_actions = ['create', 'delete', 'attach', 'detach']
+    supported_actions = ['create', 'delete']
 
     def init(self):
         super(AgentThread, self).init()
@@ -56,6 +60,7 @@ class AgentThread(BaseAgent):
             pass
 
         BaseAgent.task_failed(self, task, exception)
+
 
     def mk_ca(self, vpn):
         if not os.path.exists('/var/lib/cloudOver/coreVpn/certs/%s' % vpn.id):
@@ -125,7 +130,7 @@ class AgentThread(BaseAgent):
         p = system.Popen(['sudo',
                           'openvpn',
                           '--user', 'cloudover',
-                          '--dev', str('cv-%s' % vpn.id)[:networkConf.IFACE_NAME_LENGTH],
+                          '--dev', str('cv-%s' % vpn.id)[:networkConfig.IFACE_NAME_LENGTH],
                           '--dev-type', 'tap',
                           '--persist-tun',
                           '--mode', 'server',

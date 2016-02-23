@@ -1,5 +1,6 @@
 """
 Copyright (c) 2014 Maciej Nabozny
+              2016 Marta Nabozny
 
 This file is part of CloudOver project.
 
@@ -48,7 +49,7 @@ def create(context, name, network_id):
     task = Task()
     task.type = 'vpn'
     task.action = 'create'
-    task.append_to([vpn, network])
+    task.append_to([vpn, network], broadcast=True)
 
     return vpn.to_dict
 
@@ -61,7 +62,7 @@ def delete(context, vpn_id):
     task = Task()
     task.type = 'vpn'
     task.action = 'delete'
-    task.append_to([vpn])
+    task.append_to([vpn], broadcast=True)
 
 
 @register(auth='token')

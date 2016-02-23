@@ -1,3 +1,11 @@
+corevpn (16.02) unstable; urgency=low
+
+  * 16.03 compatibile package
+  * Debian-based python package
+
+ -- Marta Nabozny <marta.nabozny@cloudover.io> 23 Feb 2016 10:00:00 +0200
+
+
 corevpn (15.05) unstable; urgency=low
 
   * Fixed task adding for new task blockers

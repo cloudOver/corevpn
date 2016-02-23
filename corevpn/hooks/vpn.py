@@ -1,5 +1,5 @@
 """
-Copyright (c) 2015 Marta Nabozny
+Copyright (c) 2016 Marta Nabozny
 
 This file is part of CoreCluster project.
 
