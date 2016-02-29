@@ -1,6 +1,6 @@
 """
 Copyright (c) 2014 Maciej Nabozny
-              2015 Marta Nabozny
+              2015-2016 Marta Nabozny
 This file is part of CloudOver project.
 
 CloudOver is free software: you can redistribute it and/or modify
@@ -17,4 +17,4 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from corecluster.models.vpn.vpn import *
+from corevpn.models.vpn.vpn import *
