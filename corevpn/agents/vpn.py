@@ -193,5 +193,10 @@ class AgentThread(BaseAgent):
 
         system.call('rm -rf /var/lib/cloudOver/coreVpn/certs/%s' % vpn.id, shell=True)
 
+        try:
+            os.remove('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id)
+        except:
+            syslog(msg='Failed to remove pid file', loglevel=LOG_ERR)
+
         vpn.set_state('removed')
         vpn.save()
