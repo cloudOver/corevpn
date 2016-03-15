@@ -35,26 +35,6 @@ class AgentThread(BaseAgent):
     task_type = 'vpn'
     supported_actions = ['create', 'delete']
 
-    #TODO: This may be harmful on multi-agent environments. Rewrite it with broadcast tasks
-    # def init(self):
-    #     super(AgentThread, self).init()
-    #     for vpn in VPN.objects.filter(state='suspended').all():
-    #         self.mk_openvpn(vpn)
-    #         vpn.set_state('running')
-    #         vpn.save()
-    #
-    #
-    # def cleanup(self):
-    #     for vpn in VPN.objects.filter(state='running').all():
-    #         vpn.set_state('suspended')
-    #         try:
-    #             system.call(['sudo', 'kill', '-15', str(vpn.openvpn_pid)])
-    #         except:
-    #             pass
-    #         vpn.save()
-    #     super(AgentThread, self).cleanup()
-
-
     def task_failed(self, task, exception):
         try:
             vpn = VPN.objects.get(pk=task.get_prop('vpn_id'))
@@ -206,7 +186,7 @@ class AgentThread(BaseAgent):
         vpn.save()
         try:
             #TODO: Check if this is openvpn process
-            pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').readall())
+            pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').read(1024))
             system.call(['sudo', 'kill', '-15', str(pid)])
         except Exception as e:
             syslog(msg='Failed to kill openvpn process', exception=e)
