@@ -130,7 +130,7 @@ class AgentThread(BaseAgent):
                          '1024'])
 
     def mk_openvpn(self, vpn, network):
-        p = system.Popen(['sudo',
+        p = system.call(['sudo',
                           'openvpn',
                           '--user', 'cloudover',
                           '--dev', vpn.interface_name,
@@ -149,8 +149,8 @@ class AgentThread(BaseAgent):
                           '--cert', '/var/lib/cloudOver/coreVpn/certs/%s/server.crt' % vpn.id,
                           '--key', '/var/lib/cloudOver/coreVpn/certs/%s/server.key' % vpn.id,
                           '--client-to-client',
-                          '--topology', 'p2p'])
-        vpn.openvpn_pid = p.pid
+                          '--topology', 'p2p'], background=True)
+        vpn.openvpn_pid = p
 
         for i in xrange(60):
             if not os.path.exists('/sys/class/net/' + vpn.interface_name):
@@ -165,8 +165,8 @@ class AgentThread(BaseAgent):
 
 
     def create(self, task):
-        network = task.obj_get('Subnet')
-        vpn = task.obj_get('VPN')
+        network = task.get_obj('Subnet')
+        vpn = task.get_obj('VPN')
 
         vpn.set_state('init')
         vpn.save()
@@ -197,11 +197,12 @@ class AgentThread(BaseAgent):
 
 
     def delete(self, task):
-        vpn = VPN.objects.get(pk=task.get_prop('vpn_id'))
+        vpn = task.get_obj('VPN')
 
         vpn.set_state('removing')
         vpn.save()
         try:
+            #TODO: Check if this is openvpn process
             system.call(['sudo', 'kill', '-15', str(vpn.openvpn_pid)])
         except:
             pass
