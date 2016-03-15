@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from corecluster.agents.base_agent import BaseAgent
+from corecluster.utils.logger import *
 from corenetwork.utils import system
 from corevpn.models.vpn import VPN
 
@@ -148,6 +149,7 @@ class AgentThread(BaseAgent):
                           '--ca', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id,
                           '--cert', '/var/lib/cloudOver/coreVpn/certs/%s/server.crt' % vpn.id,
                           '--key', '/var/lib/cloudOver/coreVpn/certs/%s/server.key' % vpn.id,
+                          '--writepid', '/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id,
                           '--client-to-client',
                           '--topology', 'p2p'], background=True)
         vpn.openvpn_pid = p
@@ -157,7 +159,8 @@ class AgentThread(BaseAgent):
                 time.sleep(1)
                 continue
             else:
-                system.call(['sudo', 'ip'
+                system.call(['sudo',
+                             'ip',
                              'link',
                              'set', vpn.interface_name,
                              'netns', network.netns_name])
@@ -203,9 +206,11 @@ class AgentThread(BaseAgent):
         vpn.save()
         try:
             #TODO: Check if this is openvpn process
-            system.call(['sudo', 'kill', '-15', str(vpn.openvpn_pid)])
-        except:
-            pass
+            pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').readall())
+            system.call(['sudo', 'kill', '-15', str(pid)])
+        except Exception as e:
+            syslog(msg='Failed to kill openvpn process', exception=e)
+
         system.call('rm -rf /var/lib/cloudOver/coreVpn/certs/%s' % vpn.id, shell=True)
 
         vpn.set_state('removed')
