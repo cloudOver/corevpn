@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from corecluster.agents.base_agent import BaseAgent
 from corecluster.utils.logger import *
 from corenetwork.utils import system
+from corenetwork.utils.renderer import render
 from corevpn.models.vpn import VPN
+import django.conf
 
 import imp
 import os
@@ -50,7 +52,7 @@ class AgentThread(BaseAgent):
         if not os.path.exists('/var/lib/cloudOver/coreVpn/certs/%s' % vpn.id):
             os.mkdir('/var/lib/cloudOver/coreVpn/certs/%s' % vpn.id)
 
-        if os.path.exists('/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id):
+        if os.path.exists(vpn.ca_key_file):
             raise Exception('vpn_exists')
 
         if vpn.ca_crt != '' and vpn.ca_crt != None:
@@ -58,7 +60,7 @@ class AgentThread(BaseAgent):
 
         system.call(['openssl',
                      'genrsa',
-                     '-out', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
+                     '-out', vpn.ca_key_file,
                      str(coreVpnConf.CA_KEY_SIZE)])
 
         system.call(['openssl',
@@ -66,73 +68,72 @@ class AgentThread(BaseAgent):
                      '-x509',
                      '-new',
                      '-nodes',
-                     '-key', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
+                     '-key', vpn.ca_key_file,
                      '-days', str(coreVpnConf.CERTIFICATE_LIFETIME),
-                     '-out', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id,
+                     '-out', vpn.ca_crt_file,
                      '-subj', '/CN=CoreVpn-%s/O=CloudOver/OU=CoreVpn' % vpn.id])
 
-        vpn.ca_crt = open('/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id, 'r').read(1024*1024)
+        vpn.ca_crt = open(vpn.ca_crt_file, 'r').read(1024*1024)
         vpn.save()
 
 
-    def mk_cert(self, vpn, key_name):
+    def mk_cert(self, vpn, type='client'):
         if not os.path.exists('/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id):
             raise Exception('vpn_root_ca_not_found')
 
         # Create key
         system.call(['openssl',
                      'genrsa',
-                     '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (vpn.id, key_name),
+                     '-out', vpn.server_key_file,
                      str(coreVpnConf.CLIENT_KEY_SIZE)])
 
         # Create certificate sign request
         system.call(['openssl',
                      'req',
                      '-new',
-                     '-key', '/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (vpn.id, key_name),
-                     '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.csr' % (vpn.id, key_name),
-                     '-subj', '/CN=%s/O=CloudOver/OU=CoreVpn/' % key_name])
+                     '-key', vpn.server_key_file,
+                     '-out', vpn.server_key_file + '.csr',
+                     '-subj', '/CN=server/O=CloudOver/OU=CoreVpn/'])
 
         system.call(['openssl',
                      'x509',
                      '-req',
-                     '-in', '/var/lib/cloudOver/coreVpn/certs/%s/%s.csr' % (vpn.id, key_name),
-                     '-CA', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id,
-                     '-CAkey', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id,
+                     '-in', vpn.server_key_file + '.csr',
+                     '-CA', vpn.ca_crt_file,
+                     '-CAkey', vpn.ca_key_file,
                      '-CAcreateserial',
-                     '-out', '/var/lib/cloudOver/coreVpn/certs/%s/%s.crt' % (vpn.id, key_name),
+                     '-out', vpn.server_crt_file,
                      '-days', str(coreVpnConf.CERTIFICATE_LIFETIME)])
 
 
     def mk_dh(self, vpn):
         system.call(['openssl',
-                         'dhparam',
-                         '-out', '/var/lib/cloudOver/coreVpn/certs/%s/dh1024.pem' % vpn.id,
-                         '1024'])
+                     'dhparam',
+                     '-out', vpn.dh_file,
+                     '1024'])
+
+
+    def mk_config(self, vpn, network):
+        try:
+            django.conf.settings.configure({'TEMPLATE_DIRS': (
+                '/etc/corecluster/templates/',
+                '/etc/corenetwork/drivers/',
+                '/etc/corevpn/',
+            )})
+        except:
+            pass
+        config = render('openvpn.template', {'vpn': vpn, 'network': network})
+        f = open(vpn.config_file, 'w')
+        f.write(config)
+        f.close()
+
 
     def mk_openvpn(self, vpn, network):
         p = system.call(['sudo',
                           'openvpn',
-                          '--user', 'cloudover',
-                          '--dev', vpn.interface_name,
-                          '--dev-type', 'tap',
-                          '--persist-tun',
-                          '--mode', 'server',
-                          '--persist-key',
-                          '--ping', '10',
-                          '--ping-restart', '60',
-                          '--tls-server',
-                          '--proto', 'tcp-server',
-                          '--port', str(vpn.port),
-                          '--log', '/var/lib/cloudOver/coreVpn/certs/%s/vpn.log' % vpn.id,
-                          '--dh', '/var/lib/cloudOver/coreVpn/certs/%s/dh1024.pem' % vpn.id,
-                          '--ca', '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % vpn.id,
-                          '--cert', '/var/lib/cloudOver/coreVpn/certs/%s/server.crt' % vpn.id,
-                          '--key', '/var/lib/cloudOver/coreVpn/certs/%s/server.key' % vpn.id,
-                          '--writepid', '/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id,
-                          '--client-to-client',
-                          '--topology', 'p2p'], background=True)
+                          '--config', vpn.config_file], background=True)
         vpn.openvpn_pid = p
+        vpn.save()
 
         for i in xrange(60):
             if not os.path.exists('/sys/class/net/' + vpn.interface_name):

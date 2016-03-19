@@ -1,0 +1,36 @@
+port {{ vpn.port }}
+proto tcp
+dev tap
+
+ca {{ vpn.ca_crt_file }}
+cert {{ vpn.server_crt_file }}
+key {{ vpn.server_key_file }}
+dh {{ vpn.dh_file }}
+server {{ network.address }} {{ network.mask }}
+
+duplicate-cn
+keepalive 10 120
+
+# Select a cryptographic cipher.
+# This config item must be copied to
+# the client config file as well.
+;cipher BF-CBC        # Blowfish (default)
+;cipher AES-128-CBC   # AES
+;cipher DES-EDE3-CBC  # Triple-DES
+comp-lzo
+
+user nobody
+group nogroup
+
+persist-key
+persist-tun
+
+# Output a short status file showing
+# current connections, truncated
+# and rewritten every minute.
+status {{ status_log }}
+
+log {{ log }}
+
+verb 3
+mute 5

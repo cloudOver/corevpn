@@ -54,6 +54,37 @@ class VPN(StateMixin, UserMixin, CoreModel):
     def network_info(self):
         return self.network.to_dict
 
+
     @property
     def interface_name(self):
         return str('cv-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+
+
+    @property
+    def ca_crt_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.crt' % self.id
+
+
+    @property
+    def ca_key_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % self.id
+
+
+    @property
+    def server_crt_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/server.crt' % self.id
+
+
+    @property
+    def server_key_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/server.key' % self.id
+
+
+    @property
+    def dh_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/dh1024.pem' % self.id
+
+
+    @property
+    def config_file(self):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/server.conf' % self.id
