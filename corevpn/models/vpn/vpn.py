@@ -70,14 +70,12 @@ class VPN(StateMixin, UserMixin, CoreModel):
         return '/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % self.id
 
 
-    @property
-    def server_crt_file(self):
-        return '/var/lib/cloudOver/coreVpn/certs/%s/server.crt' % self.id
+    def client_crt_file(self, name='server'):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/%s.crt' % (self.id, name)
 
 
-    @property
-    def server_key_file(self):
-        return '/var/lib/cloudOver/coreVpn/certs/%s/server.key' % self.id
+    def client_key_file(self, name='server'):
+        return '/var/lib/cloudOver/coreVpn/certs/%s/%s.key' % (self.id, name)
 
 
     @property

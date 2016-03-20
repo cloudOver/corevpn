@@ -77,32 +77,32 @@ class AgentThread(BaseAgent):
         vpn.save()
 
 
-    def mk_cert(self, vpn, type='client'):
-        if not os.path.exists('/var/lib/cloudOver/coreVpn/certs/%s/rootCA.key' % vpn.id):
+    def mk_cert(self, vpn, name):
+        if not os.path.exists(vpn.ca_key_file):
             raise Exception('vpn_root_ca_not_found')
 
         # Create key
         system.call(['openssl',
                      'genrsa',
-                     '-out', vpn.server_key_file,
+                     '-out', vpn.client_key_file(name),
                      str(coreVpnConf.CLIENT_KEY_SIZE)])
 
         # Create certificate sign request
         system.call(['openssl',
                      'req',
                      '-new',
-                     '-key', vpn.server_key_file,
-                     '-out', vpn.server_key_file + '.csr',
+                     '-key', vpn.client_key_file(name),
+                     '-out', vpn.client_key_file(name) + '.csr',
                      '-subj', '/CN=server/O=CloudOver/OU=CoreVpn/'])
 
         system.call(['openssl',
                      'x509',
                      '-req',
-                     '-in', vpn.server_key_file + '.csr',
+                     '-in', vpn.client_key_file(name) + '.csr',
                      '-CA', vpn.ca_crt_file,
                      '-CAkey', vpn.ca_key_file,
                      '-CAcreateserial',
-                     '-out', vpn.server_crt_file,
+                     '-out', vpn.client_crt_file(name),
                      '-days', str(coreVpnConf.CERTIFICATE_LIFETIME)])
 
 
@@ -156,12 +156,13 @@ class AgentThread(BaseAgent):
         vpn.save()
 
         # Create CA
+        self.mk_config(vpn, network)
         self.mk_ca(vpn)
         self.mk_cert(vpn, 'server')
         self.mk_cert(vpn, 'client')
 
-        vpn.client_crt = open('/var/lib/cloudOver/coreVpn/certs/%s/client.crt' % (vpn.id), 'r').read(1024*1024)
-        vpn.client_key = open('/var/lib/cloudOver/coreVpn/certs/%s/client.key' % (vpn.id), 'r').read(1024*1024)
+        vpn.client_crt = open(vpn.client_crt_file('client'), 'r').read(1024*1024)
+        vpn.client_key = open(vpn.client_key_file('client'), 'r').read(1024*1024)
 
         self.mk_dh(vpn)
 
