@@ -6,7 +6,7 @@ ca {{ vpn.ca_crt_file }}
 cert {{ vpn.server_crt_file }}
 key {{ vpn.server_key_file }}
 dh {{ vpn.dh_file }}
-server {{ network.address }} {{ network.mask }}
+server {{ network.address }} 255.255.255.0
 
 duplicate-cn
 keepalive 10 120
@@ -28,9 +28,9 @@ persist-tun
 # Output a short status file showing
 # current connections, truncated
 # and rewritten every minute.
-status {{ status_log }}
+status {{ vpn.status_file }}
 
-log {{ log }}
+log {{ vpn.log_file }}
 
 verb 3
 mute 5

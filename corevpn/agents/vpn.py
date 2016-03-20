@@ -114,14 +114,6 @@ class AgentThread(BaseAgent):
 
 
     def mk_config(self, vpn, network):
-        try:
-            django.conf.settings.configure({'TEMPLATE_DIRS': (
-                '/etc/corecluster/templates/',
-                '/etc/corenetwork/drivers/',
-                '/etc/corevpn/',
-            )})
-        except:
-            pass
         config = render('openvpn.template', {'vpn': vpn, 'network': network})
         f = open(vpn.config_file, 'w')
         f.write(config)
@@ -131,7 +123,8 @@ class AgentThread(BaseAgent):
     def mk_openvpn(self, vpn, network):
         p = system.call(['sudo',
                           'openvpn',
-                          '--config', vpn.config_file], background=True)
+                          '--config', vpn.config_file,
+                          '--writepid', '/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id], background=True)
         vpn.openvpn_pid = p
         vpn.save()
 
@@ -155,14 +148,13 @@ class AgentThread(BaseAgent):
         vpn.set_state('init')
         vpn.save()
 
-        # Create CA
-        self.mk_config(vpn, network)
         self.mk_ca(vpn)
         self.mk_cert(vpn, 'server')
         self.mk_cert(vpn, 'client')
 
         vpn.client_crt = open(vpn.client_crt_file('client'), 'r').read(1024*1024)
         vpn.client_key = open(vpn.client_key_file('client'), 'r').read(1024*1024)
+        vpn.save()
 
         self.mk_dh(vpn)
 
@@ -175,6 +167,9 @@ class AgentThread(BaseAgent):
             port = port + 1
 
         vpn.port = port
+        vpn.save()
+
+        self.mk_config(vpn, network)
         self.mk_openvpn(vpn, network)
 
         vpn.set_state('running')
