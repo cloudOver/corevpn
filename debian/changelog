@@ -1,4 +1,4 @@
-corevpn (16.03.10) stable; urgency=low
+corevpn (16.03.11) stable; urgency=low
 
   * 16.03 compatibile package
   * Debian-based python package

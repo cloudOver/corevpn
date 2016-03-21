@@ -1,12 +1,16 @@
 port {{ vpn.port }}
-proto tcp
-dev tap
+proto tcp-server
+mode server
+tls-server
+
+dev {{ vpn.interface_name }}
+dev-type tap
 
 ca {{ vpn.ca_crt_file }}
 cert {{ vpn.server_crt_file }}
 key {{ vpn.server_key_file }}
 dh {{ vpn.dh_file }}
-server {{ network.address }} 255.255.255.0
+;server {{ network.address }} 255.255.255.0
 
 duplicate-cn
 keepalive 10 120

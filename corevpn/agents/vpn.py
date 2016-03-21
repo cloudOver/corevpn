@@ -121,24 +121,40 @@ class AgentThread(BaseAgent):
 
 
     def mk_openvpn(self, vpn, network):
-        p = system.call(['sudo',
-                          'openvpn',
-                          '--config', vpn.config_file,
-                          '--writepid', '/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id], background=True)
+        p = system.call(['sudo', 'openvpn',
+                         '--config', vpn.config_file,
+                         '--writepid', '/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id], background=True)
         vpn.openvpn_pid = p
         vpn.save()
 
         for i in xrange(60):
-            if not os.path.exists('/sys/class/net/' + vpn.interface_name):
+            r = system.call(['ip', 'link', 'show', vpn.interface_name])
+            if r > 0:
                 time.sleep(1)
                 continue
             else:
-                system.call(['sudo',
-                             'ip',
-                             'link',
-                             'set', vpn.interface_name,
-                             'netns', network.netns_name])
                 break
+
+        # Create veth pair and assign it's peer to proper network namespace
+        system.call(['sudo', 'ip', 'link', 'add', vpn.veth_name, 'type', 'veth', 'peer', 'name', vpn.peer_name])
+        system.call(['sudo', 'ip', 'link', 'set', vpn.peer_name, 'netns', network.netns_name])
+
+        # Create bridge and connect it with interfaces
+        system.call(['sudo', 'brctl', 'addbr', vpn.bridge_name])
+        system.call(['sudo', 'brctl', 'addif', vpn.bridge_name, vpn.interface_name])
+        system.call(['sudo', 'brctl', 'addif', vpn.bridge_name, vpn.veth_name])
+
+        # Create network internal bridge and add interfaces
+        system.call(['brctl', 'addbr', vpn.bridge_name], netns=network.netns_name)
+        system.call(['brctl', 'addif', vpn.bridge_name, network.interface_name], netns=network.netns_name)
+        system.call(['brctl', 'addif', vpn.bridge_name, vpn.peer_name], netns=network.netns_name)
+
+        # Bring up all necessary interfaces
+        system.call(['ip', 'link', 'set', vpn.peer_name, 'up'], netns=network.netns_name)
+        system.call(['ip', 'link', 'set', vpn.bridge_name, 'up'], netns=network.netns_name)
+        system.call(['sudo', 'ip', 'link', 'set', vpn.veth_name, 'up'])
+        system.call(['sudo', 'ip', 'link', 'set', vpn.bridge_name, 'up'])
+        system.call(['sudo', 'ip', 'link', 'set', vpn.interface_name, 'up'])
 
 
     def create(self, task):

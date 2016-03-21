@@ -57,7 +57,34 @@ class VPN(StateMixin, UserMixin, CoreModel):
 
     @property
     def interface_name(self):
+        '''
+        Get name of interface created by OpenVpn
+        '''
         return str('cv-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+
+
+    @property
+    def bridge_name(self):
+        '''
+        Get name of bridge connected with veth-pair used to inject packets into a namespace
+        '''
+        return str('cb-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+
+
+    @property
+    def veth_name(self):
+        '''
+        Get name of primary veth pair interface
+        '''
+        return str('cp-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+
+
+    @property
+    def peer_name(self):
+        '''
+        Get name of secondary veth pair interface
+        '''
+        return str('cq-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
 
 
     @property
