@@ -135,25 +135,7 @@ class AgentThread(BaseAgent):
             else:
                 break
 
-        # Create veth pair and assign it's peer to proper network namespace
-        system.call(['sudo', 'ip', 'link', 'add', vpn.veth_name, 'type', 'veth', 'peer', 'name', vpn.peer_name])
-        system.call(['sudo', 'ip', 'link', 'set', vpn.peer_name, 'netns', network.netns_name])
-
-        # Create bridge and connect it with interfaces
-        system.call(['sudo', 'brctl', 'addbr', vpn.bridge_name])
-        system.call(['sudo', 'brctl', 'addif', vpn.bridge_name, vpn.interface_name])
-        system.call(['sudo', 'brctl', 'addif', vpn.bridge_name, vpn.veth_name])
-
-        # Create network internal bridge and add interfaces
-        system.call(['brctl', 'addbr', vpn.bridge_name], netns=network.netns_name)
-        system.call(['brctl', 'addif', vpn.bridge_name, network.interface_name], netns=network.netns_name)
-        system.call(['brctl', 'addif', vpn.bridge_name, vpn.peer_name], netns=network.netns_name)
-
-        # Bring up all necessary interfaces
-        system.call(['ip', 'link', 'set', vpn.peer_name, 'up'], netns=network.netns_name)
-        system.call(['ip', 'link', 'set', vpn.bridge_name, 'up'], netns=network.netns_name)
-        system.call(['sudo', 'ip', 'link', 'set', vpn.veth_name, 'up'])
-        system.call(['sudo', 'ip', 'link', 'set', vpn.bridge_name, 'up'])
+        system.call(['sudo', 'brctl', 'addif', network.isolated_bridge_name, vpn.interface_name])
         system.call(['sudo', 'ip', 'link', 'set', vpn.interface_name, 'up'])
 
 

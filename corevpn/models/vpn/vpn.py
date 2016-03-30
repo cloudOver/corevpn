@@ -40,7 +40,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
     port = models.IntegerField(null=True, help_text='Port used to establish connection between node and network node')
     name = models.CharField(max_length=256)
     network = models.ForeignKey(Subnet)
-
+    start_time = models.DateTimeField(auto_now_add=True)
 
     ca_crt = models.TextField(null=True)
     client_key = models.TextField(null=True)
@@ -48,7 +48,15 @@ class VPN(StateMixin, UserMixin, CoreModel):
 
     openvpn_pid = models.IntegerField(null=True)
 
-    serializable = ['id', 'state', 'port', 'ca_crt', 'client_crt', 'access', 'name', 'network_id']
+    serializable = ['id',
+                    'state',
+                    'port',
+                    'ca_crt',
+                    'client_crt',
+                    'access',
+                    'name',
+                    'network_id',
+                    'start_time']
     editable = ['name', ['access', lambda x: x in UserMixin.object_access], ]
 
     def network_info(self):
@@ -69,22 +77,6 @@ class VPN(StateMixin, UserMixin, CoreModel):
         Get name of bridge connected with veth-pair used to inject packets into a namespace
         '''
         return str('cb-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
-
-
-    @property
-    def veth_name(self):
-        '''
-        Get name of primary veth pair interface
-        '''
-        return str('cp-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
-
-
-    @property
-    def peer_name(self):
-        '''
-        Get name of secondary veth pair interface
-        '''
-        return str('cq-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
 
 
     @property

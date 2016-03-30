@@ -30,7 +30,8 @@ case "$1" in
     fi
 
     echo "coreVpn: Adding sudo commands for cloudover user"
-    echo "cloudover ALL=NOPASSWD: /usr/sbin/openvpn" >> /etc/sudoers.d/corevpn
+    echo "cloudover ALL=NOPASSWD: /usr/sbin/openvpn" > /etc/sudoers.d/corevpn
+    echo "cloudover ALL=NOPASSWD: /usr/sbin/brctl" >> /etc/sudoers.d/corevpn
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
