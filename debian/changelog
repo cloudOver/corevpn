@@ -1,3 +1,10 @@
+corevpn (16.05.01) stable; urgency=low
+
+  * Config api
+
+ -- Marta Nabozny <marta.nabozny@cloudover.io> 11 May 2016 10:00:00 +0200
+
+
 corevpn (16.04.01) stable; urgency=low
 
   * 16.03 compatibile package

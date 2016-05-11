@@ -20,18 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from corecluster.agents.base_agent import BaseAgent
 from corecluster.utils.logger import *
-from corenetwork.utils import system
+from corenetwork.utils import system, config
 from corenetwork.utils.renderer import render
 from corevpn.models.vpn import VPN
-import django.conf
 
-import imp
 import os
 import time
-
-
-coreVpnConf = imp.load_source('vpnConfig', '/etc/corevpn/config.py')
-
 
 class AgentThread(BaseAgent):
     task_type = 'vpn'
@@ -61,7 +55,7 @@ class AgentThread(BaseAgent):
         system.call(['openssl',
                      'genrsa',
                      '-out', vpn.ca_key_file,
-                     str(coreVpnConf.CA_KEY_SIZE)])
+                     str(config.get('vpn', 'CA_KEY_SIZE'))])
 
         system.call(['openssl',
                      'req',
@@ -69,7 +63,7 @@ class AgentThread(BaseAgent):
                      '-new',
                      '-nodes',
                      '-key', vpn.ca_key_file,
-                     '-days', str(coreVpnConf.CERTIFICATE_LIFETIME),
+                     '-days', str(config.get('vpn', 'CERTIFICATE_LIFETIME')),
                      '-out', vpn.ca_crt_file,
                      '-subj', '/CN=CoreVpn-%s/O=CloudOver/OU=CoreVpn' % vpn.id])
 
@@ -85,7 +79,7 @@ class AgentThread(BaseAgent):
         system.call(['openssl',
                      'genrsa',
                      '-out', vpn.client_key_file(name),
-                     str(coreVpnConf.CLIENT_KEY_SIZE)])
+                     str(config.get('vpn', 'CLIENT_KEY_SIZE'))])
 
         # Create certificate sign request
         system.call(['openssl',
@@ -103,7 +97,7 @@ class AgentThread(BaseAgent):
                      '-CAkey', vpn.ca_key_file,
                      '-CAcreateserial',
                      '-out', vpn.client_crt_file(name),
-                     '-days', str(coreVpnConf.CERTIFICATE_LIFETIME)])
+                     '-days', str(config.get('vpn', 'CERTIFICATE_LIFETIME'))])
 
 
     def mk_dh(self, vpn):
@@ -156,7 +150,7 @@ class AgentThread(BaseAgent):
 
         self.mk_dh(vpn)
 
-        port = coreVpnConf.PORT_BASE
+        port = config.get('vpn', 'PORT_BASE')
         used_ports = []
         for v in VPN.objects.filter(state__in=['running', 'init']):
             used_ports.append(v.port)
@@ -180,7 +174,6 @@ class AgentThread(BaseAgent):
         vpn.set_state('removing')
         vpn.save()
         try:
-            #TODO: Check if this is openvpn process
             pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').read(1024))
             system.call(['sudo', 'kill', '-15', str(pid)])
         except Exception as e:

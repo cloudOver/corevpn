@@ -22,8 +22,7 @@ from django.db import models
 
 from corecluster.models.common_models import CoreModel, UserMixin, StateMixin
 from corecluster.models.core import Subnet
-from corecluster.settings import networkConfig
-
+from corenetwork.utils import config
 
 class VPN(StateMixin, UserMixin, CoreModel):
     states = [
@@ -68,7 +67,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
         '''
         Get name of interface created by OpenVpn
         '''
-        return str('cv-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+        return str('cv-%s' % self.id)[:config.get('netowrk', 'IFACE_NAME_LENGTH')]
 
 
     @property
@@ -76,7 +75,7 @@ class VPN(StateMixin, UserMixin, CoreModel):
         '''
         Get name of bridge connected with veth-pair used to inject packets into a namespace
         '''
-        return str('cb-%s' % self.id)[:networkConfig.IFACE_NAME_LENGTH]
+        return str('cb-%s' % self.id)[:config.get('network', 'IFACE_NAME_LENGTH')]
 
 
     @property
