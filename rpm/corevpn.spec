@@ -40,5 +40,4 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /etc/corevpn/
-/etc/sudoers.d/
 /usr/local/lib/python2.7/dist-packages/
