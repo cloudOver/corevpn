@@ -5,7 +5,7 @@ from distutils.command.install import install as _install
 setup(
   name = 'corevpn',
   packages = find_packages(exclude=['config']),
-  version = '16.02.01',
+  version = '16.06.01',
   description = 'CloudOver VPN service',
   author = 'Marta Nabozny',
   author_email = 'marta.nabozny@cloudover.io',
