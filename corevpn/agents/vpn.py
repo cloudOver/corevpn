@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from corecluster.agents.base_agent import BaseAgent
-from corecluster.utils.logger import *
+from corenetwork.utils.logger import log
 from corenetwork.utils import system, config
 from corenetwork.utils.renderer import render
 from corevpn.models.vpn import VPN
@@ -177,14 +177,14 @@ class AgentThread(BaseAgent):
             pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').read(1024))
             system.call(['sudo', 'kill', '-15', str(pid)])
         except Exception as e:
-            syslog(msg='Failed to kill openvpn process', exception=e)
+            log(msg='Failed to kill openvpn process', exception=e, tags=('corevpn', 'error'))
 
         system.call('rm -rf /var/lib/cloudOver/coreVpn/certs/%s' % vpn.id, shell=True)
 
         try:
             os.remove('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id)
         except:
-            syslog(msg='Failed to remove pid file', loglevel=LOG_ERR)
+            log(msg='Failed to remove pid file', tags=('error'))
 
         vpn.set_state('removed')
         vpn.save()
