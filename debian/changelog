@@ -1,8 +1,8 @@
-corevpn (16.09.01) stable; urgency=low
+corevpn (16.12.01) stable; urgency=low
 
   * Config api
 
- -- Marta Nabozny <marta.nabozny@cloudover.io> 11 May 2016 10:00:00 +0200
+ -- Marta Nabozny <marta.nabozny@cloudover.io> 20 Dec 2016 10:00:00 +0200
 
 
 corevpn (16.04.01) stable; urgency=low
