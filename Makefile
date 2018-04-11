@@ -7,7 +7,7 @@ install:
 	cp -r config/* $(DESTDIR)/etc/corevpn/
 	cp -r config/openvpn.template $(DESTDIR)/etc/corecluster/templates/
 	mkdir -p $(DESTDIR)/var/lib/cloudOver/coreVpn/certs/
-	python setup.py install --root=$(DESTDIR)
+	python3 setup.py install --root=$(DESTDIR)
 
 egg:
 	python setup.py sdist bdist_egg
