@@ -121,7 +121,7 @@ class AgentThread(BaseAgent):
         vpn.openvpn_pid = p
         vpn.save()
 
-        for i in xrange(60):
+        for i in range(60):
             r = system.call(['ip', 'link', 'show', vpn.interface_name])
             if r > 0:
                 time.sleep(1)
