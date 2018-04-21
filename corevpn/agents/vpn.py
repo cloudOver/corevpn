@@ -67,7 +67,7 @@ class AgentThread(BaseAgent):
                      '-out', vpn.ca_crt_file,
                      '-subj', '/CN=CoreVpn-%s/O=CloudOver/OU=CoreVpn' % vpn.id])
 
-        vpn.ca_crt = open(vpn.ca_crt_file, 'r').read(1024*1024)
+        vpn.ca_crt = open(vpn.ca_crt_file, 'rb').read(1024*1024)
         vpn.save()
 
 
@@ -144,8 +144,8 @@ class AgentThread(BaseAgent):
         self.mk_cert(vpn, 'server')
         self.mk_cert(vpn, 'client')
 
-        vpn.client_crt = open(vpn.client_crt_file('client'), 'r').read(1024*1024)
-        vpn.client_key = open(vpn.client_key_file('client'), 'r').read(1024*1024)
+        vpn.client_crt = open(vpn.client_crt_file('client'), 'rb').read(1024*1024)
+        vpn.client_key = open(vpn.client_key_file('client'), 'rb').read(1024*1024)
         vpn.save()
 
         self.mk_dh(vpn)
@@ -174,7 +174,7 @@ class AgentThread(BaseAgent):
         vpn.set_state('removing')
         vpn.save()
         try:
-            pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'r').read(1024))
+            pid = int(open('/var/lib/cloudOver/coreVpn/%s.pid' % vpn.id, 'rb').read(1024))
             system.call(['sudo', 'kill', '-15', str(pid)])
         except Exception as e:
             log(msg='Failed to kill openvpn process', exception=e, tags=('corevpn', 'error'))
